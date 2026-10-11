@@ -1,0 +1,6 @@
+{
+  "name": "docker",
+  "description": "/docker:docker roteia para /docker:create ou /docker:tune, que compartilham sub-skills privadas. /docker:create monta o ambiente de dev (hot reload) e de prod (imagem enxuta em ./deploy); /docker:tune põe o que existe nas regras e otimiza com medição. Imagens na versão mais nova e nginx com HTTP/2 e HTTP/3. Hooks garantem nomes de projeto, serviço e container, UID/GID do host no dev, volumes em pasta local, um .env por ambiente, defaults, dockerignore e HTTP/3.",
+  "version": "0.1.0",
+  "author": { "name": "kamoca" }
+}

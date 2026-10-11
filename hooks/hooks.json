@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/compose-name.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:compose-name: name: primeiro no compose"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/service-name.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:service-name: serviço com nome da tecnologia"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/container-name.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:container-name: container_name = projeto + serviço"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/dev-user.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:dev-user: dev com UID/GID do host"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/bind-volumes.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:bind-volumes: volumes em pasta local"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/single-env.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:single-env: um .env por ambiente"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/var-defaults.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:var-defaults: default em toda variável"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/deploy-folder.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:deploy-folder: prod em ./deploy"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/dockerignore.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:dockerignore: dockerignore sem segredo nem dados"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/http3.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:http3: HTTP/2 e HTTP/3 no servidor HTTP"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "description": "compose de dev com nuxt e postgres seguindo todas as regras passa",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "compose.yaml",
+      "content": "name: dev-${APP_NAME:-loja}\n\nservices:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    image: node:24-alpine\n    user: \"${UID:-1000}:${GID:-1000}\"\n    command: sh -c \"npm install && npm run dev\"\n    volumes:\n      - ./:/app\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    user: \"${UID:-1000}:${GID:-1000}\"\n    volumes:\n      - ./.data/postgres:/var/lib/postgresql\n"
+    },
+    "deny": []
+  },
+  {
+    "description": "compose de prod no deploy/ seguindo todas as regras passa",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "deploy/compose.yaml",
+      "content": "name: ${APP_NAME:-loja}\n\nservices:\n  node:\n    container_name: ${COMPOSE_PROJECT_NAME}-node\n    build:\n      context: ..\n      dockerfile: deploy/Dockerfile\n    env_file:\n      - path: .env\n        required: false\n    restart: unless-stopped\n    ports:\n      - \"${APP_PORT:-80}:3000\"\n    depends_on:\n      postgres:\n        condition: service_healthy\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    environment:\n      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no deploy/.env}\n    volumes:\n      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql\n"
+    },
+    "deny": []
+  },
+  {
+    "description": "compose típico da internet viola quase todas as regras",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "docker-compose.yml",
+      "content": "services:\n  app:\n    build: .\n    env_file: .env.local\n    volumes:\n      - .:/app\n      - /app/node_modules\n    ports:\n      - \"${PORT}:3000\"\n  db:\n    image: postgres:16\n    volumes:\n      - pgdata:/var/lib/postgresql\nvolumes:\n  pgdata:\n"
+    },
+    "deny": [
+      "compose-name",
+      "service-name",
+      "container-name",
+      "dev-user",
+      "bind-volumes",
+      "single-env",
+      "var-defaults"
+    ]
+  },
+  {
+    "description": "docker-compose.prod.yml na raiz vai para o deploy/ (e, fora dele, é tratado como dev)",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "docker-compose.prod.yml",
+      "content": "name: ${APP_NAME:-loja}\n\nservices:\n  node:\n    container_name: ${COMPOSE_PROJECT_NAME}-node\n    build:\n      context: ..\n      dockerfile: deploy/Dockerfile\n    env_file:\n      - path: .env\n        required: false\n    restart: unless-stopped\n    ports:\n      - \"${APP_PORT:-80}:3000\"\n    depends_on:\n      postgres:\n        condition: service_healthy\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    environment:\n      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no deploy/.env}\n    volumes:\n      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql\n"
+    },
+    "deny": [
+      "compose-name",
+      "deploy-folder",
+      "dev-user"
+    ]
+  },
+  {
+    "description": "criar .env.production é negado",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": ".env.production",
+      "content": "APP_PORT=80"
+    },
+    "deny": [
+      "single-env"
+    ]
+  },
+  {
+    "description": ".env próprio do deploy passa",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "deploy/.env",
+      "content": "DB_PASSWORD=x"
+    },
+    "deny": []
+  },
+  {
+    "description": "dockerignore do deploy sem o .env vazaria segredo na imagem",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "deploy/Dockerfile.dockerignore",
+      "content": "node_modules\n.git\n.data\ndeploy/data\n"
+    },
+    "deny": [
+      "dockerignore"
+    ]
+  },
+  {
+    "description": "nginx subido só com HTTP/1.1 e TLS, o padrão de tutorial",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "deploy/nginx/default.conf.template",
+      "content": "server {\n    listen 443 ssl;\n    ssl_certificate /etc/nginx/certs/cert.pem;\n    ssl_certificate_key /etc/nginx/certs/key.pem;\n    location / {\n        proxy_pass http://node:3000;\n    }\n}\n"
+    },
+    "deny": [
+      "http3"
+    ]
+  },
+  {
+    "description": "código da aplicação não passa por nenhuma regra",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "src/production.ts",
+      "content": "export const port = process.env.PORT"
+    },
+    "deny": []
+  }
+]
