@@ -12,7 +12,7 @@
 ## Instalação
 
 ```bash
-claude plugin marketplace add ~/Development/claude-plugins
+claude plugin marketplace add kamoca-labs/marketplace
 claude plugin install docker@kamoca
 ```
 
