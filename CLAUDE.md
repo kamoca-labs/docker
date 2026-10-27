@@ -1,0 +1,7 @@
+Skill names (the `/plugin:action` command) and their key arguments (`target:`, `since:`) are in English, without exception. All content is in English too: skills, docs, hook messages and tests. The language of Claude's replies follows the user's language, so no skill or hook may force a reply language. A rule that detects words in the user's prompt (for example a consent) must accept the user's language as well as English.
+
+Code review is "PR/MR" in all text. PR, MR, pull request and merge request are synonyms for the same concept: the plugin does not assume the forge (GitHub or GitLab), and the reader understands any of the names.
+
+Claude is the user's tool: it does the work, and the user only decides and approves. A skill, hook or doc never tells the user to edit a file, configure, install or run a command by hand. When something is missing, the skill tells Claude to ask the user for permission, do the action and check that it worked (for example, by opening a test session). The only exception is what Claude cannot do, such as a slash command (`/plugin`, `/mcp`) or an interactive login: in that case, the skill tells Claude to hand over the ready command.
+
+A reference, decision or choice about the project lives in the repo (CLAUDE.md, `docs/`, `.claude/memory/`), with a relative path. Never in Claude's local memory (`~/.claude/`) and never with an absolute path: it would only hold on this machine, and the team would not see it.

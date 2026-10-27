@@ -1,14 +1,14 @@
 ---
 name: https
-description: Servidor HTTP com HTTP/2 e HTTP/3: config do nginx, portas TCP e UDP, certificado autoassinado no dev (certs/generate.sh), certificado copiado para deploy/certs no prod e como verificar h2 e h3. Usada por docker:create e docker:tune quando há servidor HTTP.
+description: HTTP server with HTTP/2 and HTTP/3. Covers the nginx config, TCP and UDP ports, the self-signed certificate in dev (certs/generate.sh), the certificate copied to deploy/certs in prod, and how to check h2 and h3. Used by docker:create and docker:tune when there is an HTTP server.
 user-invocable: false
 ---
 
-# HTTP e HTTPS
+# HTTP and HTTPS
 
-O servidor HTTP padrão é o nginx oficial, que já vem com os módulos de HTTP/2 e HTTP/3. Ele sobe com TLS mesmo no dev, porque sem TLS não existe HTTP/2 no navegador nem HTTP/3.
+The default HTTP server is the official nginx, which includes the HTTP/2 and HTTP/3 modules. It starts with TLS even in dev, because browsers do not use HTTP/2 or HTTP/3 without TLS.
 
-`nginx/default.conf.template`: a imagem troca as variáveis do ambiente (`${HTTPS_PORT}`) e mantém as do nginx (`$host`).
+`nginx/default.conf.template`: the image replaces the environment variables (`${HTTPS_PORT}`) and keeps the nginx variables (`$host`).
 
 ```nginx
 server {
@@ -34,7 +34,7 @@ server {
 }
 ```
 
-O serviço no compose:
+The service in the compose file:
 
 ```yaml
   nginx:
@@ -51,9 +51,9 @@ O serviço no compose:
       - ./certs:/etc/nginx/certs:ro
 ```
 
-- **`443/udp`**: o HTTP/3 roda sobre QUIC, que usa UDP. Sem essa porta, o navegador fica no HTTP/2 sem dar erro.
-- **`Alt-Svc`**: é por esse cabeçalho que o navegador descobre o HTTP/3. A porta anunciada é a externa (`HTTPS_PORT`).
-- **Certificado do dev**: `certs/generate.sh` (versionado) gera um autoassinado para `localhost`:
+- **`443/udp`**: HTTP/3 runs on QUIC, which uses UDP. Without this port, the browser stays on HTTP/2 and shows no error.
+- **`Alt-Svc`**: the browser finds HTTP/3 through this header. The announced port is the external one (`HTTPS_PORT`).
+- **Dev certificate**: `certs/generate.sh` (in version control) generates a self-signed certificate for `localhost`:
 
   ```sh
   #!/bin/sh
@@ -65,11 +65,11 @@ O serviço no compose:
     -keyout "$dir/key.pem" -out "$dir/cert.pem" \
     -subj "/CN=$domain" \
     -addext "subjectAltName=DNS:$domain,DNS:*.$domain,IP:127.0.0.1"
-  echo "certificado autoassinado em $dir (cert.pem, key.pem)"
+  echo "self-signed certificate in $dir (cert.pem, key.pem)"
   ```
 
-- **Prod**: o `deploy/compose.yaml` monta `./certs:/etc/nginx/certs:ro`, ou seja, `deploy/certs/`. No servidor, o certificado real (`cert.pem` com a cadeia completa, `key.pem`) é copiado para lá. Para simular localmente, gere nessa pasta: `./certs/generate.sh deploy/certs`. O certificado nunca entra na imagem: `certs` e `deploy/certs` vão no dockerignore.
-- **Verificar** (o curl do host costuma vir sem HTTP/3, então o teste do h3 roda num container com Debian):
+- **Prod**: `deploy/compose.yaml` mounts `./certs:/etc/nginx/certs:ro`, which is `deploy/certs/`. On the server, copy the real certificate there (`cert.pem` with the full chain, and `key.pem`). To simulate it locally, generate the certificate in that folder with `./certs/generate.sh deploy/certs`. The certificate never enters the image: put `certs` and `deploy/certs` in the dockerignore.
+- **Check** (the host curl usually has no HTTP/3, so run the h3 test in a Debian container):
 
   ```bash
   curl -sk --http2 -o /dev/null -w '%{http_version}\n' https://localhost:${HTTPS_PORT:-443}/   # 2

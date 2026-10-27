@@ -5,7 +5,7 @@ const input = readInput()
 const name = path.basename(targetPath(input))
 
 if (/^\.env\..+/.test(name) && name !== '.env.example') {
-  deny('single-env', `${name}: um .env por ambiente, ./.env no dev e deploy/.env no prod.`)
+  deny('single-env', `${name}: use one .env per environment: ./.env in dev and deploy/.env in prod.`)
 }
 
 const yaml = composeContent(input)
@@ -15,5 +15,5 @@ const others = yaml === null ? [] : services(yaml)
   .filter((envFile) => !['.env', './.env'].includes(envFile))
 
 if (others.length) {
-  deny('single-env', `env_file fora do .env do ambiente: ${others.join(', ')}. Use \`env_file: .env\`, o que está ao lado do compose.`)
+  deny('single-env', `env_file is not the .env of the environment: ${others.join(', ')}. Use \`env_file: .env\`, the one next to the compose file.`)
 }

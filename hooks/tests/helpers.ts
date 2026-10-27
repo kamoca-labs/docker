@@ -54,6 +54,6 @@ export function allowed(result: SpawnSyncReturns<string>) {
 }
 
 export function denied(result: SpawnSyncReturns<string>, pattern: RegExp) {
-  assert.strictEqual(result.status, 2, `esperava negar com ${pattern}`)
+  assert.strictEqual(result.status, 2, `expected a denial matching ${pattern}`)
   assert.match(result.stderr, pattern)
 }

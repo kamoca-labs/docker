@@ -1,32 +1,32 @@
 ---
 name: prod-image
-description: Imagem de produção enxuta e rápida em ./deploy: Dockerfile multi-stage, dockerignore, compose de prod e sinais de imagem ou build lentos. Usada por docker:create e docker:tune ao escrever ou otimizar o prod.
+description: Lean and fast production image in ./deploy. Covers the multi-stage Dockerfile, the dockerignore, the prod compose file and the signs of a slow image or build. Used by docker:create and docker:tune when they write or optimize prod.
 user-invocable: false
 ---
 
-# Imagem de produção
+# Production image
 
 ## Dockerfile (`deploy/Dockerfile`)
 
-- Multi-stage: a etapa de build tem o toolchain, a de runtime leva só o artefato.
-- Base `-alpine`, `-slim` ou distroless, na versão de `docker:versions`.
-- Só dependências de prod; lockfile copiado e instalado antes do código, para aproveitar o cache de camada.
-- `RUN --mount=type=cache,target=<cache do gerenciador>` no gerenciador de pacote.
-- `USER` sem root e `HEALTHCHECK`.
+- Use multi-stage. The build stage has the toolchain. The runtime stage has only the artifact.
+- Use a `-alpine`, `-slim` or distroless base, in the version from `docker:versions`.
+- Install only prod dependencies. Copy and install the lockfile before the code, to use the layer cache.
+- Use `RUN --mount=type=cache,target=<package manager cache>` for the package manager.
+- Add a non-root `USER` and a `HEALTHCHECK`.
 
 ## Dockerignore (`deploy/Dockerfile.dockerignore`)
 
-Escrito **antes** do Dockerfile (o hook nega o Dockerfile sem ignore). O BuildKit lê o ignore ao lado do Dockerfile, então a raiz fica limpa. Pelo menos `**/.env`, `.git`, `.data`, `deploy/data`, `certs`, `deploy/certs`, mais as dependências e o build da stack (`node_modules`, `vendor`, `dist`, `.nuxt`). Sem isso, o `COPY . .` leva segredo e certificado para a imagem, e as pastas de dados do banco quebram ou incham o build.
+Write it **before** the Dockerfile (the hook denies a Dockerfile without an ignore file). BuildKit reads the ignore file next to the Dockerfile, so the root stays clean. Include at least `**/.env`, `.git`, `.data`, `deploy/data`, `certs` and `deploy/certs`, plus the dependencies and the build output of the stack (`node_modules`, `vendor`, `dist`, `.nuxt`). Without them, `COPY . .` puts secrets and certificates in the image, and the database data folders break or bloat the build.
 
 ## Compose (`deploy/compose.yaml`)
 
-`build: { context: .., dockerfile: deploy/Dockerfile }`, `restart: unless-stopped`, sem montar código, só os volumes de dados (`${DATA_DIR:-./data}/<serviço>`) e os certificados. Segredo sem default seguro: `${VAR:?defina VAR no deploy/.env}`, com o valor gerado no `deploy/.env` (`openssl rand -hex 24`). Sobe com `docker compose -f deploy/compose.yaml up -d --build --wait`; o Compose lê o `deploy/.env` sozinho.
+Use `build: { context: .., dockerfile: deploy/Dockerfile }` and `restart: unless-stopped`. Do not mount code. Mount only the data volumes (`${DATA_DIR:-./data}/<service>`) and the certificates. For a secret with no safe default, use `${VAR:?set VAR in deploy/.env}` and put the generated value in `deploy/.env` (`openssl rand -hex 24`). Start it with `docker compose -f deploy/compose.yaml up -d --build --wait`. Compose reads `deploy/.env` by itself.
 
-## Sinais de build ou imagem ruins
+## Signs of a bad build or image
 
-| Sinal | Mudança |
+| Sign | Change |
 |---|---|
-| build quente igual ao frio | copiar o lockfile e instalar antes de copiar o código |
-| download de pacote a cada build | `RUN --mount=type=cache` |
-| contexto de build grande (`transferring context` alto no log do build) | completar o dockerignore com as dependências e o build da stack |
-| imagem de prod grande | runtime menor, sem dependências de dev, só o artefato |
+| warm build as slow as the cold build | copy the lockfile and install before you copy the code |
+| package download on every build | `RUN --mount=type=cache` |
+| large build context (high `transferring context` in the build log) | complete the dockerignore with the dependencies and the build output of the stack |
+| large prod image | smaller runtime, no dev dependencies, only the artifact |

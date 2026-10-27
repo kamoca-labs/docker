@@ -14,12 +14,12 @@ if (ignore !== null) {
   const entries = ignore.split('\n').map((line) => line.trim().replace(/^\/|\/$/g, ''))
   const missing = REQUIRED.filter((entry) => !entries.includes(entry))
   if (missing.length) {
-    deny('dockerignore', `${name} sem ${missing.join(', ')}: o build copiaria segredo ou dados para a imagem.`)
+    deny('dockerignore', `${name} is missing ${missing.join(', ')}: the build would copy secrets or data into the image.`)
   }
 }
 
 const candidates = [`${file}.dockerignore`, path.join(path.dirname(file), '.dockerignore'), path.join(path.dirname(file), '..', '.dockerignore')]
 
 if (/^Dockerfile/.test(name) && !name.endsWith('.dockerignore') && !candidates.some((candidate) => fs.existsSync(candidate))) {
-  deny('dockerignore', `${name} sem .dockerignore. Crie antes ${name}.dockerignore ao lado dele, com ${REQUIRED.join(', ')}.`)
+  deny('dockerignore', `${name} has no .dockerignore. First create ${name}.dockerignore next to it, with ${REQUIRED.join(', ')}.`)
 }

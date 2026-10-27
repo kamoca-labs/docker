@@ -6,5 +6,5 @@ const unnamed = yaml === null ? [] : services(yaml)
   .map((service) => service.key)
 
 if (unnamed.length) {
-  deny('container-name', `container_name deve ser o name do projeto + o serviço: ${unnamed.map((key) => `${key} → \${COMPOSE_PROJECT_NAME}-${key}`).join(', ')}.`)
+  deny('container-name', `container_name must be the project name plus the service: ${unnamed.map((key) => `${key} → \${COMPOSE_PROJECT_NAME}-${key}`).join(', ')}.`)
 }

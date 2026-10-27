@@ -1,37 +1,37 @@
 ---
 name: hot-reload
-description: Ambiente de dev com hot reload e com o usuário do host: código montado, comando em watch por stack, UID/GID gerados no .env, pastas de dados criadas antes de subir, polling quando o watcher falha. Usada por docker:create e docker:tune no compose de dev.
+description: Dev environment with hot reload and the host user. Mounted code, a watch command per stack, UID/GID generated in the .env, data folders created before start, polling when the watcher fails. Used by docker:create and docker:tune in the dev compose file.
 user-invocable: false
 ---
 
-# Hot reload e usuário do host
+# Hot reload and the host user
 
-## Usuário do host
+## Host user
 
-- `user: "${UID:-1000}:${GID:-1000}"` em todo serviço de dev que monta pasta local com escrita, inclusive o banco: o que ele gravar (`node_modules`, `vendor`, `.data/postgres`) fica com o seu usuário e sai sem `sudo`. Montagem só de leitura (`:ro`, como a config do nginx) não precisa.
-- `UID` e `GID` sempre gerados no `.env` do dev, nunca deixados no default: `printf 'UID=%s\nGID=%s\n' "$(id -u)" "$(id -g)" >> .env` (se ainda não tiver). Usuário de domínio tem UID longe de 1000.
-- `mkdir -p .data/<serviço>` para cada volume **antes** de subir: se o Docker criar a pasta, ela fica com dono root e o serviço, rodando como você, não grava.
-- Conferir com `ls -ln .data`: dono igual ao `id -u`.
+- Set `user: "${UID:-1000}:${GID:-1000}"` on every dev service that mounts a local folder with write access, the database included. Files that the service writes (`node_modules`, `vendor`, `.data/postgres`) then belong to your user and need no `sudo` to remove. A read-only mount (`:ro`, like the nginx config) needs no user.
+- Always generate `UID` and `GID` in the dev `.env`. Never leave the default. Run `printf 'UID=%s\nGID=%s\n' "$(id -u)" "$(id -g)" >> .env` (if they are not there yet). A domain user has a UID far from 1000.
+- Run `mkdir -p .data/<service>` for each volume **before** the start. If Docker creates the folder, root owns it and the service, which runs as you, cannot write.
+- Check with `ls -ln .data`. The owner must be equal to `id -u`.
 
-## Por stack
+## By stack
 
 | Stack | Dev |
 |---|---|
-| Node (Vite, Next, Nest) | `npm install && npm run dev -- --host 0.0.0.0`; Nest com `start:dev`; API sem framework com `node --watch` |
-| PHP / Laravel | PHP relê o arquivo a cada request; `php artisan serve --host=0.0.0.0` ou php-fpm + nginx; Vite em outro serviço para os assets |
+| Node (Vite, Next, Nest) | `npm install && npm run dev -- --host 0.0.0.0`. Nest uses `start:dev`. An API without a framework uses `node --watch` |
+| PHP / Laravel | PHP reads the file again on each request. Use `php artisan serve --host=0.0.0.0` or php-fpm + nginx. Run Vite in another service for the assets |
 | Python | `uvicorn --reload`, `flask run --debug`, `manage.py runserver 0.0.0.0:8000` |
 | Go | `air` |
 
-O código fica em `./:/app`, o comando escuta em `0.0.0.0` e as dependências instalam no container, caindo na pasta local.
+Keep the code in `./:/app`. The command listens on `0.0.0.0`. The dependencies install in the container and land in the local folder.
 
-Se o watcher não percebe a mudança (Docker Desktop, WSL2 com o código no Windows), ligue polling por variável com default: `CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-false}`, `WATCHPACK_POLLING`.
+If the watcher does not see the change (Docker Desktop, WSL2 with the code on Windows), turn on polling with a variable that has a default: `CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-false}`, `WATCHPACK_POLLING`.
 
-Para conferir: altere um arquivo da app, veja no log ou na resposta que recarregou e desfaça a alteração.
+To check: change a file of the app, confirm in the log or in the response that it reloaded, and revert the change.
 
-## Exemplo
+## Example
 
 ```yaml
-name: dev-${APP_NAME:-loja}
+name: dev-${APP_NAME:-shop}
 
 services:
   node:
@@ -56,9 +56,9 @@ services:
     image: postgres:18-alpine
     user: "${UID:-1000}:${GID:-1000}"
     environment:
-      POSTGRES_DB: ${DB_NAME:-loja}
-      POSTGRES_USER: ${DB_USER:-loja}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-loja}
+      POSTGRES_DB: ${DB_NAME:-shop}
+      POSTGRES_USER: ${DB_USER:-shop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-shop}
     volumes:
       - ./.data/postgres:/var/lib/postgresql
     healthcheck:

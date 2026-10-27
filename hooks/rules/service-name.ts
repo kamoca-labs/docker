@@ -6,5 +6,5 @@ const yaml = composeContent(readInput())
 const generic = yaml === null ? [] : services(yaml).map((service) => service.key).filter((key) => GENERIC.has(key))
 
 if (generic.length) {
-  deny('service-name', `Serviço com nome genérico: ${generic.join(', ')}. Use o nome da tecnologia (postgres, mysql, redis, node, nuxt, react, nginx).`)
+  deny('service-name', `Service with a generic name: ${generic.join(', ')}. Use the technology name (postgres, mysql, redis, node, nuxt, react, nginx).`)
 }

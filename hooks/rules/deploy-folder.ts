@@ -7,5 +7,5 @@ const file = targetPath(readInput())
 const name = path.basename(file)
 
 if (DOCKER_FILE.test(name) && /prod/i.test(name) && !isDeploy(file)) {
-  deny('deploy-folder', `${name}: tudo de prod fica em ./deploy (deploy/compose.yaml, deploy/Dockerfile, deploy/Dockerfile.dockerignore).`)
+  deny('deploy-folder', `${name}: all prod files belong in ./deploy (deploy/compose.yaml, deploy/Dockerfile, deploy/Dockerfile.dockerignore).`)
 }

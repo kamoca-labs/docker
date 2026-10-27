@@ -1,67 +1,67 @@
-# Uso do plugin `docker`
+# Using the `docker` plugin
 
-## Sumário
+## Contents
 
-- [Dockerizar um projeto](#dockerizar-um-projeto)
-- [Subir dev e prod](#subir-dev-e-prod)
-- [HTTPS local](#https-local)
-- [Ajustar e otimizar](#ajustar-e-otimizar)
-- [Quando o hook nega](#quando-o-hook-nega)
+- [Dockerize a project](#dockerize-a-project)
+- [Start dev and prod](#start-dev-and-prod)
+- [Local HTTPS](#local-https)
+- [Adjust and optimize](#adjust-and-optimize)
+- [When a hook denies a write](#when-a-hook-denies-a-write)
 
-## Dockerizar um projeto
+## Dockerize a project
 
 ```
-/docker:docker                     # roteia sozinho: sem Docker, cria; com Docker, ajusta
+/docker:docker                     # routes by itself: without Docker, it creates. With Docker, it adjusts
 /docker:create
-/docker:create dev node com postgres e redis
+/docker:create dev node with postgres and redis
 ```
 
-O Claude levanta stack, porta e serviços, mostra o plano e **espera o seu ok**. Depois cria `compose.yaml` (dev), `deploy/` (prod), os dois `.env` (o do dev com seu `UID`/`GID`), as pastas de dados e o `.gitignore`, sobe tudo, altera um arquivo para confirmar o hot reload e reporta build, up e tamanho da imagem.
+Claude finds the stack, the port and the services, shows the plan and **waits for your approval**. Then it creates `compose.yaml` (dev), `deploy/` (prod), the two `.env` files (the dev one with your `UID`/`GID`), the data folders and the `.gitignore`. It starts everything, changes a file to confirm hot reload and reports the build time, the up time and the image size.
 
-## Subir dev e prod
+## Start dev and prod
 
 ```bash
-docker compose up -d --wait                                # dev, lê ./.env
-docker compose -f deploy/compose.yaml up -d --build --wait  # prod, lê deploy/.env
+docker compose up -d --wait                                # dev, reads ./.env
+docker compose -f deploy/compose.yaml up -d --build --wait  # prod, reads deploy/.env
 ```
 
-Cada compose lê o `.env` que está ao lado dele. Dev e prod têm nomes diferentes (`dev-loja-*` e `loja-*`), então rodam juntos na mesma máquina.
+Each compose file reads the `.env` next to it. Dev and prod have different names (`dev-shop-*` and `shop-*`), so they run together on the same machine.
 
-## HTTPS local
+## Local HTTPS
 
 ```bash
-./certs/generate.sh                 # dev: certs/cert.pem e certs/key.pem para localhost
-./certs/generate.sh deploy/certs    # simula o prod; no servidor, o certificado real é copiado para deploy/certs/
+./certs/generate.sh                 # dev: certs/cert.pem and certs/key.pem for localhost
+./certs/generate.sh deploy/certs    # simulates prod. On the server, the real certificate is copied to deploy/certs/
 ```
 
-O nginx sobe com HTTP/2 e HTTP/3. Para conferir o h3, o curl precisa ter suporte; o do host normalmente não tem, então o `/docker:create` testa num container `debian:trixie-slim`. O navegador avisa que o certificado é autoassinado: aceite uma vez para `localhost`.
+nginx starts with HTTP/2 and HTTP/3. To check h3, curl must support it. The curl of the host usually does not, so `/docker:create` tests in a `debian:trixie-slim` container. The browser warns that the certificate is self-signed. Accept it once for `localhost`.
 
-## Ajustar e otimizar
+## Adjust and optimize
 
 ```
 /docker:tune
-/docker:tune up está lento
+/docker:tune up is slow
 ```
 
-1. Sobe e corrige o que não fica `healthy`.
-2. Reescreve o que foge das regras. Volume nomeado com dados é copiado para a pasta local e só é removido com o seu ok.
-3. Mede a linha de base, 3 vezes, pela mediana.
-4. Uma mudança por vez, medindo de novo: fica o que ganhou 10% ou mais, o resto é desfeito.
-5. Tabela de antes e depois.
+1. It starts the environment and fixes what does not become `healthy`.
+2. It rewrites what breaks the rules. A named volume with data is copied to the local folder. It is removed only with your approval.
+3. It measures the baseline, 3 times, as the median.
+4. It makes one change at a time and measures again. The change stays if it gained 10% or more. Otherwise, it is reverted.
+5. It shows a before and after table.
 
-## Quando o hook nega
+## When a hook denies a write
 
 ```
-[docker:compose-name] A primeira chave do compose deve ser `name:` com valor ...
-[docker:service-name] Serviço com nome genérico: app, db. Use o nome da tecnologia ...
-[docker:container-name] container_name deve ser o name do projeto + o serviço: postgres → ${COMPOSE_PROJECT_NAME}-postgres.
-[docker:dev-user] Serviço de dev que grava na pasta local sem o usuário do host: postgres. ...
-[docker:bind-volumes] Volume que não aponta para pasta local: postgres: pgdata:/var/lib/postgresql. ...
-[docker:single-env] .env.production: um .env por ambiente, ./.env no dev e deploy/.env no prod.
-[docker:var-defaults] Variável sem default: APP_PORT. Use ${APP_PORT:-valor}; ...
-[docker:deploy-folder] docker-compose.prod.yml: tudo de prod fica em ./deploy ...
-[docker:http3] Server com TLS sem HTTP/2 e HTTP/3. Falta: listen 443 quic reuseport; http2 on; http3 on; ...
-[docker:dockerignore] Dockerfile sem .dockerignore. Crie antes Dockerfile.dockerignore ao lado dele, ...
+[docker:compose-name] The first key of the compose file must be `name:` with a value ...
+[docker:service-name] Service with a generic name: app, db. Use the technology name ...
+[docker:container-name] container_name must be the project name plus the service: postgres → ${COMPOSE_PROJECT_NAME}-postgres.
+[docker:dev-user] Dev service that mounts a local folder with write access runs without the host user: postgres. ...
+[docker:bind-volumes] Volume that does not point to a local folder: postgres: pgdata:/var/lib/postgresql. ...
+[docker:single-env] .env.production: use one .env per environment: ./.env in dev and deploy/.env in prod.
+[docker:var-defaults] Variable without a default: APP_PORT. Use ${APP_PORT:-value}. ...
+[docker:deploy-folder] docker-compose.prod.yml: all prod files belong in ./deploy ...
+[docker:http3] Server with TLS but without HTTP/2 and HTTP/3. Missing: listen 443 quic reuseport; http2 on; http3 on; ...
+[docker:dockerignore] Dockerfile has no .dockerignore. First create Dockerfile.dockerignore next to it, ...
 ```
 
-Falso positivo: o caso fica em `~/.claude/hook-cases.jsonl` e vira teste no `hooks/tests/cases.json` (veja [transformar caso real em teste](../../USAGE.md#transformar-caso-real-em-teste)).
+For a false positive, the case stays in `~/.claude/hook-cases.jsonl` and becomes a test in `hooks/tests/cases.json` (see [turn a real case into a test](https://github.com/kamoca-labs/marketplace/blob/main/USAGE.md#turn-a-real-case-into-a-test)).
