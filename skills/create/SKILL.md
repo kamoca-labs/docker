@@ -1,32 +1,32 @@
 ---
 name: create
-description: Cria o ambiente Docker de um projeto que ainda não tem. Dev na raiz com hot reload e o usuário do host; prod enxuto em ./deploy com .env próprio; imagens na versão mais nova; servidor HTTP com HTTP/2 e HTTP/3. Use ao dockerizar um projeto ou quando pedirem compose, Dockerfile ou ambiente de dev ou prod do zero.
-argument-hint: "[dev|prod] [stack ou serviços]"
+description: Creates the Docker environment of a project that has none. Dev in the root with hot reload and the host user. Lean prod in ./deploy with its own .env. Newest image versions. HTTP server with HTTP/2 and HTTP/3. Use to dockerize a project, or when asked for compose, a Dockerfile or a dev or prod environment from scratch.
+argument-hint: "[dev|prod] [stack or services]"
 ---
 
 # docker:create
 
-Primeiro **funcionar**, já dentro das regras. Otimizar vem depois, com `docker:tune`. Sem argumento, cria dev e prod.
+First make it **work**, already inside the rules. Optimize later with `docker:tune`. Without an argument, create dev and prod.
 
-Carregue com a ferramenta `Skill` cada sub-skill no passo em que ela entra, e só se o projeto precisar dela.
+Load each sub-skill with the `Skill` tool at the step where it applies. Load it only if the project needs it.
 
-## Passos
+## Steps
 
-1. **Levante o projeto**: stack pelos manifestos e lockfile, comando de dev, porta, serviços de que o código depende (banco, cache, fila, e-mail) e se precisa de servidor HTTP na frente (php-fpm sempre precisa; estáticos, proxy reverso, HTTPS). Se já existe Docker, pare e use `docker:tune`.
-2. **Regras e versões**: carregue `docker:rules` e `docker:versions` e consulte a tag de cada imagem no Docker Hub.
-3. **Mostre o plano e espere o ok**: arquivos, serviços com imagem e tag consultada, portas, variáveis com seus defaults. Uma tabela curta.
-4. **Dev**: `docker:hot-reload`. Serviço da aplicação com o nome da tecnologia (`node`, `nuxt`, `php`), serviços de apoio com imagem oficial, `healthcheck` e dados em `./.data/<serviço>`, e `depends_on` com `condition: service_healthy` só onde a app precisa do serviço de pé.
-5. **Prod**: `docker:prod-image`.
-6. **Servidor HTTP**, se houver: `docker:https`, com o certificado do dev e o de simulação do prod.
-7. **`.env` e `.gitignore`**: `./.env` com `UID`/`GID` gerados e `deploy/.env` com os segredos. No `.gitignore`: `.env`, `deploy/.env`, `.data/`, `deploy/data/`, `certs/*.pem` e `deploy/certs/`.
-8. **Faça funcionar**, nesta ordem, corrigindo até tudo passar:
-   - `docker compose config` valida a interpolação e mostra os nomes;
-   - `docker compose up -d --wait`: tudo `healthy`, a app responde;
-   - hot reload e dono das pastas (`docker:hot-reload`);
-   - h2 e h3, se houver servidor HTTP (`docker:https`);
+1. **Survey the project.** Find the stack from the manifests and the lockfile. Find the dev command, the port and the services the code needs (database, cache, queue, e-mail). Decide if an HTTP server must sit in front (php-fpm always needs one. Static files, reverse proxy and HTTPS also need one). If Docker already exists, stop and use `docker:tune`.
+2. **Rules and versions.** Load `docker:rules` and `docker:versions`. Look up the tag of each image on Docker Hub.
+3. **Show the plan and wait for approval.** List the files, the services with the image and the tag you found, the ports and the variables with their defaults. Use a short table.
+4. **Dev.** Load `docker:hot-reload`. Name the application service after the technology (`node`, `nuxt`, `php`). Use an official image for support services, with a `healthcheck` and data in `./.data/<service>`. Add `depends_on` with `condition: service_healthy` only where the app needs the service to be up.
+5. **Prod.** Load `docker:prod-image`.
+6. **HTTP server**, if there is one. Load `docker:https`, with the dev certificate and the prod simulation certificate.
+7. **`.env` and `.gitignore`.** Put the generated `UID` and `GID` in `./.env` and the secrets in `deploy/.env`. In `.gitignore`, add `.env`, `deploy/.env`, `.data/`, `deploy/data/`, `certs/*.pem` and `deploy/certs/`.
+8. **Make it work**, in this order. Fix problems until everything passes:
+   - `docker compose config` checks the interpolation and shows the names.
+   - `docker compose up -d --wait`: everything is `healthy` and the app answers.
+   - Check hot reload and the owner of the folders (`docker:hot-reload`).
+   - Check h2 and h3, if there is an HTTP server (`docker:https`).
    - `docker compose -f deploy/compose.yaml up -d --build --wait`.
-9. **Reporte**: os arquivos, os comandos de subir dev e prod e a linha de base de `docker:measure` (build, up e tamanho da imagem de prod).
+9. **Report.** List the files, the commands to start dev and prod, and the `docker:measure` baseline (build, up and size of the prod image).
 
-## Fora do escopo
+## Out of scope
 
-Otimização de arquitetura e de tempo de build: `docker:tune`. CI, registry e orquestrador (Swarm, Kubernetes): só se pedirem, em mudança separada.
+Architecture optimization and build time optimization belong to `docker:tune`. CI, registry and orchestrator (Swarm, Kubernetes): only on request, in a separate change.

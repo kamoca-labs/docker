@@ -1,34 +1,34 @@
 ---
 name: measure
-description: Como medir o ambiente Docker: tempo de build frio e quente, tempo até healthy, tamanho de imagem, recursos, latência da aplicação e banco, sempre pela mediana de 3 execuções. Usada por docker:create (linha de base) e docker:tune (antes e depois de cada mudança).
+description: How to measure the Docker environment. Covers cold and warm build time, time to healthy, image size, resources, and application and database latency, always as the median of 3 runs. Used by docker:create (baseline) and docker:tune (before and after each change).
 user-invocable: false
 ---
 
-# Medir
+# Measure
 
-Rode cada medida **3 vezes** e use a mediana. Sempre o mesmo endpoint e a mesma carga, para que antes e depois sejam comparáveis.
+Run each measurement **3 times** and use the median. Always use the same endpoint and the same load, so that before and after are comparable.
 
-| Medida | Como |
+| Measurement | How |
 |---|---|
-| Build frio | `time docker compose build --no-cache <serviço>` |
-| Build quente | altere um arquivo de código e `time docker compose build <serviço>`: mostra se a ordem das camadas aproveita o cache |
+| Cold build | `time docker compose build --no-cache <service>` |
+| Warm build | change a code file and run `time docker compose build <service>`. It shows whether the layer order uses the cache |
 | Up | `docker compose down && time docker compose up -d --wait` |
-| Imagem | `docker image ls --format '{{.Repository}}:{{.Tag}} {{.Size}}'` |
-| Recursos | `docker stats --no-stream` com a app sob carga |
-| App | latência p50 e p95 e requisições por segundo com `oha`, `hey` ou `ab`, o que estiver instalado; sem nenhum, um laço de `curl -w '%{time_total}'` |
-| Banco | conexões (`select count(*) from pg_stat_activity`), consultas lentas (`pg_stat_statements`, slow log do MySQL) |
+| Image | `docker image ls --format '{{.Repository}}:{{.Tag}} {{.Size}}'` |
+| Resources | `docker stats --no-stream` with the app under load |
+| App | p50 and p95 latency and requests per second with `oha`, `hey` or `ab`, whichever is installed. With none of them, use a loop of `curl -w '%{time_total}'` |
+| Database | connections (`select count(*) from pg_stat_activity`), slow queries (`pg_stat_statements`, MySQL slow log) |
 
-O `docker:create` reporta só build, up e imagem, como linha de base. O `docker:tune` usa a tabela inteira.
+`docker:create` reports only build, up and image, as the baseline. `docker:tune` uses the whole table.
 
-Nunca rode `docker system prune` nem `docker builder prune` sem pedir: apagam o cache de todos os projetos da máquina.
+Never run `docker system prune` or `docker builder prune` without asking. They delete the cache of all projects on the machine.
 
-## Relatório
+## Report
 
 ```
-| Medida          | Antes  | Depois |
+| Measurement     | Before | After  |
 |-----------------|--------|--------|
-| Build quente    | 94 s   | 6 s    |
-| Up até healthy  | 41 s   | 12 s   |
-| Imagem de prod  | 1,2 GB | 180 MB |
-| p95 /api/pedido | 420 ms | 95 ms  |
+| Warm build      | 94 s   | 6 s    |
+| Up to healthy   | 41 s   | 12 s   |
+| Prod image      | 1.2 GB | 180 MB |
+| p95 /api/order  | 420 ms | 95 ms  |
 ```

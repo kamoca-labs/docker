@@ -1,33 +1,33 @@
 ---
 name: docker
-description: Ponto de entrada do Docker. Roteia o pedido para docker:create (projeto sem Docker) ou docker:tune (Docker que já existe, quebrado, lento ou fora do padrão), e responde dúvidas pontuais carregando só a sub-skill do assunto. Use em qualquer pedido sobre Docker, compose, Dockerfile, ambiente de dev ou prod.
-argument-hint: "[o que você quer]"
+description: Docker entry point. Routes the request to docker:create (project without Docker) or docker:tune (existing Docker that is broken, slow or out of the standard). Answers specific questions by loading only the sub-skill of the topic. Use for any request about Docker, compose, a Dockerfile, or a dev or prod environment.
+argument-hint: "[what you want]"
 ---
 
 # docker
 
-## Roteamento
+## Routing
 
-1. Olhe o projeto: `compose.yaml`, `docker-compose*.yml`, `Dockerfile*`, `deploy/`.
-2. Escolha pelo pedido e pelo que existe:
+1. Look at the project: `compose.yaml`, `docker-compose*.yml`, `Dockerfile*`, `deploy/`.
+2. Choose by the request and by what exists:
 
-| Situação | Skill |
+| Situation | Skill |
 |---|---|
-| Sem Docker, ou o pedido é para criar o ambiente | `docker:create` |
-| Já tem Docker e o pedido é ajustar, corrigir, padronizar, deixar mais rápido ou atualizar | `docker:tune` |
-| Dúvida ou mudança pontual num assunto só | só a sub-skill do assunto, abaixo |
+| No Docker, or the request is to create the environment | `docker:create` |
+| Docker exists and the request is to adjust, fix, standardize, speed up or update | `docker:tune` |
+| A question or a small change on one topic | only the sub-skill of the topic, below |
 
-Na dúvida entre create e tune, pergunte. Repasse os argumentos para a skill escolhida.
+If you cannot choose between create and tune, ask. Pass the arguments to the chosen skill.
 
 ## Sub-skills
 
-Ficam fora do menu de `/`, mas o modelo carrega pela ferramenta `Skill`. O create e o tune carregam as mesmas, então a regra é escrita num lugar só.
+They stay out of the `/` menu, but the model loads them with the `Skill` tool. Create and tune load the same ones, so each rule is written in one place.
 
-| Skill | Assunto |
+| Skill | Topic |
 |---|---|
-| `docker:rules` | regras garantidas pelos hooks e layout de arquivos |
-| `docker:versions` | tag mais nova no Docker Hub e troca de major |
-| `docker:hot-reload` | dev com hot reload e usuário do host |
-| `docker:prod-image` | Dockerfile multi-stage, dockerignore e compose de prod |
-| `docker:https` | nginx com HTTP/2 e HTTP/3 e certificados |
-| `docker:measure` | medição de build, up, imagem, app e banco |
+| `docker:rules` | rules enforced by the hooks and the file layout |
+| `docker:versions` | newest tag on Docker Hub and major version changes |
+| `docker:hot-reload` | dev with hot reload and the host user |
+| `docker:prod-image` | multi-stage Dockerfile, dockerignore and prod compose |
+| `docker:https` | nginx with HTTP/2 and HTTP/3 and certificates |
+| `docker:measure` | measurement of build, up, image, app and database |

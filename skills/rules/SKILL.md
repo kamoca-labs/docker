@@ -1,49 +1,49 @@
 ---
 name: rules
-description: Regras do ambiente Docker (nomes, UID/GID no dev, volumes em pasta local, .env por ambiente, defaults, ./deploy, dockerignore, versões, HTTP/3, hot reload, prod enxuto) e o layout de arquivos. Usada por docker:create e docker:tune; carregue antes de escrever ou revisar compose, Dockerfile ou config de servidor HTTP.
+description: Rules of the Docker environment (names, UID/GID in dev, volumes in a local folder, .env per environment, defaults, ./deploy, dockerignore, versions, HTTP/3, hot reload, lean prod) and the file layout. Used by docker:create and docker:tune. Load it before you write or review a compose file, a Dockerfile or an HTTP server config.
 user-invocable: false
 ---
 
-# Regras do Docker
+# Docker rules
 
-Os hooks do plugin (`[docker:<regra>]`, um por regra) negam a escrita que viola a tabela abaixo. Se algum negar, corrija o arquivo, nunca contorne (escrever por `cat >` no shell, renomear para fugir do padrão de nome).
+The hooks of the plugin (`[docker:<rule>]`, one per rule) deny any write that breaks the table below. If a hook denies a write, fix the file. Never work around the hook (for example, by writing with `cat >` in the shell, or by renaming the file to avoid the name pattern).
 
-| Regra | Como | Garantida por |
+| Rule | How | Enforced by |
 |---|---|---|
-| Nome do projeto primeiro | `name:` é a primeira chave do compose, antes de `services:`. Dev com o prefixo: `name: dev-${APP_NAME:-<pasta>}`; prod: `name: ${APP_NAME:-<pasta>}` | hook `compose-name` |
-| Serviço com nome da tecnologia | `postgres`, `redis`, `node`, `nuxt`, `react`, `nginx`; nunca `app`, `db`, `api`, `web`, `backend`, `frontend` | hook `service-name` |
-| Container = projeto + serviço | `container_name: ${COMPOSE_PROJECT_NAME}-<serviço>`, o Compose preenche com o `name:` | hook `container-name` |
-| Dev com o usuário do host | todo serviço de dev que monta pasta local roda com `user: "${UID:-1000}:${GID:-1000}"`, e o `.env` do dev tem `UID` e `GID` gerados com `id -u` e `id -g` (o default 1000 erra para usuário de domínio) | hook `dev-user` + `docker:hot-reload` |
-| Volume sempre em pasta local | bind mount: dev em `./.data/<serviço>`, prod em `${DATA_DIR:-./data}/<serviço>` (dentro do `deploy/`). Sem volume nomeado nem anônimo | hook `bind-volumes` |
-| Um `.env` por ambiente | `./.env` no dev e `deploy/.env` no prod, os dois fora do git. Cada compose lê o `.env` que está ao lado (`env_file` com `path: .env` e `required: false`). Sem `.env.dev`, `.env.prod`, `.env.local` | hook `single-env` |
-| Default em todo parâmetro | `${VAR:-valor}`. Segredo de prod sem valor seguro: `${VAR:?defina VAR no deploy/.env}` | hook `var-defaults` |
-| Prod em `./deploy` | `deploy/compose.yaml`, `deploy/Dockerfile`, `deploy/Dockerfile.dockerignore`, `deploy/.env` e a config de proxy, se houver | hook `deploy-folder` |
-| Dockerignore antes do Dockerfile | todo Dockerfile tem ignore, com pelo menos `**/.env`, `.git`, `.data` e `deploy/data`, mais as dependências e o build da stack (`node_modules`, `vendor`, `dist`, `.nuxt`). Sem isso, o `COPY . .` leva segredo para a imagem, e as pastas de dados do banco quebram ou incham o build | hook `dockerignore` |
-| Imagem na versão mais nova | a versão estável mais nova de cada tecnologia, consultada no Docker Hub, nunca da memória (Postgres 18, e não 16; PHP 8.5, e não 8.2). Veja `docker:versions` | `docker:versions` |
-| HTTP/2 e HTTP/3 | o servidor HTTP sobe com TLS, `http2`, `http3` (QUIC) e `Alt-Svc`, e publica a 443 em TCP e UDP. Veja `docker:https` | hook `http3` + `docker:https` |
-| Dev com hot reload | código montado de `./` e servidor em modo watch | `docker:hot-reload` |
-| Prod enxuto e rápido | multi-stage, runtime mínimo, sem código montado | `docker:prod-image` |
+| Project name first | `name:` is the first key of the compose file, before `services:`. Dev uses the prefix: `name: dev-${APP_NAME:-<folder>}`. Prod uses `name: ${APP_NAME:-<folder>}` | hook `compose-name` |
+| Service named after the technology | `postgres`, `redis`, `node`, `nuxt`, `react`, `nginx`. Never `app`, `db`, `api`, `web`, `backend`, `frontend` | hook `service-name` |
+| Container = project + service | `container_name: ${COMPOSE_PROJECT_NAME}-<service>`. Compose fills it with the `name:` | hook `container-name` |
+| Dev with the host user | every dev service that mounts a local folder runs with `user: "${UID:-1000}:${GID:-1000}"`. The dev `.env` has `UID` and `GID` generated with `id -u` and `id -g` (the default 1000 is wrong for a domain user) | hook `dev-user` + `docker:hot-reload` |
+| Volume always in a local folder | Use a bind mount. Dev uses `./.data/<service>`. Prod uses `${DATA_DIR:-./data}/<service>` (inside `deploy/`). No named or anonymous volumes | hook `bind-volumes` |
+| One `.env` per environment | `./.env` in dev and `deploy/.env` in prod, both out of git. Each compose file reads the `.env` next to it (`env_file` with `path: .env` and `required: false`). No `.env.dev`, `.env.prod`, `.env.local` | hook `single-env` |
+| Default in every parameter | `${VAR:-value}`. A prod secret with no safe value uses `${VAR:?set VAR in deploy/.env}` | hook `var-defaults` |
+| Prod in `./deploy` | `deploy/compose.yaml`, `deploy/Dockerfile`, `deploy/Dockerfile.dockerignore`, `deploy/.env` and the proxy config, if there is one | hook `deploy-folder` |
+| Dockerignore before the Dockerfile | every Dockerfile has an ignore file, with at least `**/.env`, `.git`, `.data` and `deploy/data`, plus the dependencies and the build output of the stack (`node_modules`, `vendor`, `dist`, `.nuxt`). Without it, `COPY . .` puts secrets in the image, and the database data folders break or bloat the build | hook `dockerignore` |
+| Newest image version | the newest stable version of each technology, looked up on Docker Hub, never from memory (Postgres 18, not 16. PHP 8.5, not 8.2). See `docker:versions` | `docker:versions` |
+| HTTP/2 and HTTP/3 | the HTTP server starts with TLS, `http2`, `http3` (QUIC) and `Alt-Svc`, and publishes 443 on TCP and UDP. See `docker:https` | hook `http3` + `docker:https` |
+| Dev with hot reload | code mounted from `./` and the server in watch mode | `docker:hot-reload` |
+| Lean and fast prod | multi-stage, minimal runtime, no mounted code | `docker:prod-image` |
 
-Com default em tudo e `required: false`, o compose funciona sem `.env`. O `.env` só sobrescreve valores e guarda os segredos (e, no dev, o `UID`/`GID`).
+With defaults everywhere and `required: false`, the compose file works without a `.env`. The `.env` only overrides values and keeps the secrets (and, in dev, `UID`/`GID`).
 
 ## Layout
 
 ```
-.env                        dev: UID, GID e o que sobrescreve os defaults
+.env                        dev: UID, GID and what overrides the defaults
 compose.yaml                dev
-Dockerfile                  dev, só se a imagem oficial com um command não resolve
-.dockerignore               só se houver Dockerfile de dev
-.data/                      volumes de dev (no .gitignore)
-nginx/default.conf.template dev, quando há servidor HTTP
+Dockerfile                  dev, only if the official image with a command is not enough
+.dockerignore               only if there is a dev Dockerfile
+.data/                      dev volumes (in .gitignore)
+nginx/default.conf.template dev, when there is an HTTP server
 certs/
-├── generate.sh             gera o certificado autoassinado (versionado)
-└── cert.pem, key.pem       gerados (no .gitignore)
+├── generate.sh             generates the self-signed certificate (in version control)
+└── cert.pem, key.pem       generated (in .gitignore)
 deploy/
 ├── compose.yaml            prod
 ├── Dockerfile              prod, multi-stage
-├── Dockerfile.dockerignore o BuildKit lê o ignore ao lado do Dockerfile, então a raiz fica limpa
-├── .env                    prod: segredos e valores de produção
+├── Dockerfile.dockerignore BuildKit reads the ignore file next to the Dockerfile, so the root stays clean
+├── .env                    prod: secrets and production values
 ├── nginx/default.conf.template
-├── certs/                  cert.pem e key.pem copiados para cá no deploy (no .gitignore)
-└── data/                   volumes de prod (no .gitignore)
+├── certs/                  cert.pem and key.pem copied here at deploy (in .gitignore)
+└── data/                   prod volumes (in .gitignore)
 ```
