@@ -64,4 +64,4 @@ nginx starts with HTTP/2 and HTTP/3. To check h3, curl must support it. The curl
 [docker:dockerignore] Dockerfile has no .dockerignore. First create Dockerfile.dockerignore next to it, ...
 ```
 
-For a false positive, the case stays in `~/.claude/hook-cases.jsonl` and becomes a test in `hooks/tests/cases.json` (see [turn a real case into a test](https://github.com/kamoca-labs/marketplace/blob/main/USAGE.md)).
+For a false positive, the case stays in `~/.claude/hook-cases.jsonl` and becomes a test in `hooks/tests/cases.json` (see [turn a real case into a test](https://github.com/kamoca-labs/marketplace/blob/main/USAGE.md#turn-a-real-case-into-a-test)).
