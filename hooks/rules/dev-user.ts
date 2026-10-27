@@ -11,5 +11,5 @@ const withoutUser = yaml === null ? [] : services(yaml)
   .map((service) => service.key)
 
 if (withoutUser.length) {
-  deny('dev-user', `Serviço de dev que monta pasta local com escrita sem o usuário do host: ${withoutUser.join(', ')}. Use \`user: "\${UID:-1000}:\${GID:-1000}"\` e gere UID e GID no .env com \`id -u\` e \`id -g\`.`)
+  deny('dev-user', `Dev service that mounts a local folder with write access runs without the host user: ${withoutUser.join(', ')}. Use \`user: "\${UID:-1000}:\${GID:-1000}"\` and generate UID and GID in the .env with \`id -u\` and \`id -g\`.`)
 }

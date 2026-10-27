@@ -8,19 +8,19 @@ const rules = fs.readdirSync(path.join(HOOKS_DIR, 'rules')).map((file) => path.b
 const hooksJson = fs.readFileSync(path.join(HOOKS_DIR, 'hooks.json'), 'utf8')
 const wired = [...hooksJson.matchAll(/rules\/([\w-]+)\.ts/g)].map((match) => match[1])
 
-test('toda regra tem hook dedicado no hooks.json', () => {
+test('every rule has its own hook in hooks.json', () => {
   assert.deepStrictEqual(rules.filter((rule) => !wired.includes(rule)), [])
 })
 
-test('todo hook do hooks.json aponta para uma regra que existe', () => {
+test('every hook in hooks.json points to a rule that exists', () => {
   assert.deepStrictEqual(wired.filter((rule) => !rules.includes(rule)), [])
 })
 
-test('cada regra aparece uma vez só no hooks.json', () => {
+test('every rule appears only once in hooks.json', () => {
   assert.strictEqual(new Set(wired).size, wired.length)
 })
 
-test('toda regra tem teste próprio', () => {
+test('every rule has its own test', () => {
   const missing = rules.filter((rule) => !fs.existsSync(path.join(import.meta.dirname, `${rule}.test.ts`)))
   assert.deepStrictEqual(missing, [])
 })
@@ -30,17 +30,17 @@ const PUBLIC_SKILLS = ['docker', 'create', 'tune']
 const skills = fs.readdirSync(SKILLS_DIR)
 const skillText = (skill: string) => fs.readFileSync(path.join(SKILLS_DIR, skill, 'SKILL.md'), 'utf8')
 
-test('só o hub, o create e o tune aparecem no menu de /; as sub-skills são privadas', () => {
+test('only the hub, create and tune appear in the / menu, and the sub-skills are private', () => {
   const hidden = skills.filter((skill) => /^user-invocable: false$/m.test(skillText(skill))).sort()
   assert.deepStrictEqual(hidden, skills.filter((skill) => !PUBLIC_SKILLS.includes(skill)).sort())
 })
 
-test('o hub lista exatamente as sub-skills privadas', () => {
+test('the hub lists exactly the private sub-skills', () => {
   const listed = [...skillText('docker').matchAll(/^\| `docker:([\w-]+)`/gm)].map((match) => match[1]).sort()
   assert.deepStrictEqual(listed, skills.filter((skill) => !PUBLIC_SKILLS.includes(skill)).sort())
 })
 
-test('toda referência docker:<skill> nas skills aponta para uma skill que existe', () => {
+test('every docker:<skill> reference in the skills points to a skill that exists', () => {
   const referenced = new Set(skills.flatMap((skill) => [...skillText(skill).matchAll(/`\/?docker:([\w-]+)/g)].map((match) => match[1])))
   assert.deepStrictEqual([...referenced].filter((skill) => !skills.includes(skill)), [])
 })

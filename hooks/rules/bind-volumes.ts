@@ -12,11 +12,11 @@ const yaml = composeContent(readInput())
 if (yaml !== null) {
   const declared = entries(lines(yaml)).find((entry) => entry.key === 'volumes')
   if (declared && (declared.body.length || !['', '{}'].includes(declared.value))) {
-    deny('bind-volumes', 'Volume nomeado declarado no topo do compose. Todo volume aponta para uma pasta local (ex.: `./.data/postgres:/var/lib/postgresql/data`).')
+    deny('bind-volumes', 'Named volume declared at the top level of the compose file. Point every volume to a local folder (example: `./.data/postgres:/var/lib/postgresql/data`).')
   }
   const named = services(yaml).flatMap((service) =>
     values(field(service, 'volumes')).filter((volume) => !isLocalFolder(volume)).map((volume) => `${service.key}: ${volume.split('\n')[0]}`))
   if (named.length) {
-    deny('bind-volumes', `Volume que não aponta para pasta local: ${named.join('; ')}. Use \`./<pasta>:<destino>\` (ex.: \`\${DATA_DIR:-./.data}/postgres:/var/lib/postgresql/data\`).`)
+    deny('bind-volumes', `Volume that does not point to a local folder: ${named.join(', ')}. Use \`./<folder>:<target>\` (example: \`\${DATA_DIR:-./.data}/postgres:/var/lib/postgresql/data\`).`)
   }
 }

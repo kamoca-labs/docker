@@ -15,7 +15,7 @@ const conf = NGINX_CONF.test(path.basename(targetPath(input))) ? contentAfter(in
 if (conf && /listen\s+[^;]*\bssl\b/.test(conf)) {
   const missing = MODERN_TLS.filter(([pattern]) => !pattern.test(conf)).map(([, directive]) => directive)
   if (missing.length) {
-    deny('http3', `Server com TLS sem HTTP/2 e HTTP/3. Falta: ${missing.join(' ')}`)
+    deny('http3', `Server with TLS but without HTTP/2 and HTTP/3. Missing: ${missing.join(' ')}`)
   }
 }
 
@@ -28,5 +28,5 @@ const tcpOnly = yaml === null ? [] : services(yaml)
   .map((service) => service.key)
 
 if (tcpOnly.length) {
-  deny('http3', `Serviço publica a 443 só em TCP: ${tcpOnly.join(', ')}. O HTTP/3 (QUIC) usa UDP: publique também \`"\${HTTPS_PORT:-443}:443/udp"\`.`)
+  deny('http3', `Service publishes 443 on TCP only: ${tcpOnly.join(', ')}. HTTP/3 (QUIC) uses UDP: also publish \`"\${HTTPS_PORT:-443}:443/udp"\`.`)
 }
