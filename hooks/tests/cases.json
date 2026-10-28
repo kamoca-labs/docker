@@ -1,21 +1,31 @@
 [
   {
-    "description": "dev compose file with nuxt and postgres that follows all rules passes",
+    "description": "base file with nuxt and postgres, each with a build to docker/<domain>/Dockerfile, passes",
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
       "file_path": "compose.yaml",
-      "content": "name: dev-${APP_NAME:-shop}\n\nservices:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    image: node:24-alpine\n    user: \"${UID:-1000}:${GID:-1000}\"\n    command: sh -c \"npm install && npm run dev\"\n    volumes:\n      - ./:/app\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    user: \"${UID:-1000}:${GID:-1000}\"\n    volumes:\n      - ./.data/postgres:/var/lib/postgresql\n"
+      "content": "services:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    build:\n      context: .\n      dockerfile: docker/nuxt/Dockerfile\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    build:\n      context: docker/postgres\n      dockerfile: Dockerfile\n"
     },
     "deny": []
   },
   {
-    "description": "prod compose file in deploy/ that follows all rules passes",
+    "description": "compose.dev.yaml with the dev difference (target, host user, mounted code) passes",
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
-      "file_path": "deploy/compose.yaml",
-      "content": "name: ${APP_NAME:-shop}\n\nservices:\n  node:\n    container_name: ${COMPOSE_PROJECT_NAME}-node\n    build:\n      context: ..\n      dockerfile: deploy/Dockerfile\n    env_file:\n      - path: .env\n        required: false\n    restart: unless-stopped\n    ports:\n      - \"${APP_PORT:-80}:3000\"\n    depends_on:\n      postgres:\n        condition: service_healthy\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    environment:\n      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}\n    volumes:\n      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql\n"
+      "file_path": "compose.dev.yaml",
+      "content": "name: dev-${APP_NAME:-shop}\n\nservices:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    build:\n      target: dev\n    user: \"${UID:-1000}:${GID:-1000}\"\n    command: sh -c \"npm install && npm run dev\"\n    env_file:\n      - path: .env\n        required: false\n    volumes:\n      - ./:/app\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    build:\n      target: dev\n    user: \"${UID:-1000}:${GID:-1000}\"\n    volumes:\n      - ./docker/postgres/data/dev:/var/lib/postgresql\n"
+    },
+    "deny": []
+  },
+  {
+    "description": "compose.prod.yaml with the prod difference (registry image, target, .env.prod) passes",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "compose.prod.yaml",
+      "content": "name: ${APP_NAME:-shop}\n\nservices:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    image: ${REGISTRY:-registry.example.com/shop}/${APP_NAME:-shop}-nuxt:${IMAGE_TAG:-latest}\n    build:\n      target: prod\n    env_file:\n      - path: .env.prod\n        required: false\n    restart: unless-stopped\n    ports:\n      - \"${APP_PORT:-80}:3000\"\n    depends_on:\n      postgres:\n        condition: service_healthy\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    build:\n      target: prod\n    environment:\n      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env.prod}\n    volumes:\n      - ${DATA_DIR:-./docker/postgres/data/prod}:/var/lib/postgresql\n"
     },
     "deny": []
   },
@@ -31,14 +41,14 @@
       "compose-name",
       "service-name",
       "container-name",
-      "dev-user",
       "bind-volumes",
       "single-env",
-      "var-defaults"
+      "var-defaults",
+      "docker-folder"
     ]
   },
   {
-    "description": "docker-compose.prod.yml in the root belongs in deploy/ (and, outside it, counts as dev)",
+    "description": "docker-compose.prod.yml is denied: prod is compose.prod.yaml in the root",
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
@@ -46,9 +56,44 @@
       "content": "name: ${APP_NAME:-shop}\n\nservices:\n  node:\n    container_name: ${COMPOSE_PROJECT_NAME}-node\n    build:\n      context: ..\n      dockerfile: deploy/Dockerfile\n    env_file:\n      - path: .env\n        required: false\n    restart: unless-stopped\n    ports:\n      - \"${APP_PORT:-80}:3000\"\n    depends_on:\n      postgres:\n        condition: service_healthy\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    image: postgres:18-alpine\n    environment:\n      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}\n    volumes:\n      - ${DATA_DIR:-./data}/postgres:/var/lib/postgresql\n"
     },
     "deny": [
-      "compose-name",
-      "deploy-folder",
-      "dev-user"
+      "docker-folder"
+    ]
+  },
+  {
+    "description": "old layout deploy/compose.yaml is denied: the compose file stays in the root",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "deploy/compose.yaml",
+      "content": "name: ${APP_NAME:-shop}\n\nservices:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    build:\n      context: .\n      dockerfile: docker/nuxt/Dockerfile\n"
+    },
+    "deny": [
+      "docker-folder"
+    ]
+  },
+  {
+    "description": "Dockerfile.prod is denied: the image is single, with dev and prod stages",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "docker/nuxt/Dockerfile.prod",
+      "content": "FROM node:24-alpine AS prod\n"
+    },
+    "deny": [
+      "docker-folder",
+      "dockerignore"
+    ]
+  },
+  {
+    "description": "base service with only image: is denied, it becomes a minimal Dockerfile",
+    "origin": "usage",
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "compose.yaml",
+      "content": "services:\n  nuxt:\n    container_name: ${COMPOSE_PROJECT_NAME}-nuxt\n    build:\n      context: .\n      dockerfile: docker/nuxt/Dockerfile\n  postgres:\n    container_name: ${COMPOSE_PROJECT_NAME}-postgres\n    build:\n      context: docker/postgres\n      dockerfile: Dockerfile\n  redis:\n    container_name: ${COMPOSE_PROJECT_NAME}-redis\n    image: redis:8-alpine\n"
+    },
+    "deny": [
+      "service-build"
     ]
   },
   {
@@ -64,22 +109,22 @@
     ]
   },
   {
-    "description": "the own .env of deploy passes",
+    "description": "the .env.prod of prod passes",
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
-      "file_path": "deploy/.env",
-      "content": "DB_PASSWORD=x"
+      "file_path": ".env.prod",
+      "content": "DB_PASSWORD=x\n"
     },
     "deny": []
   },
   {
-    "description": "deploy dockerignore without .env would leak a secret into the image",
+    "description": "dockerignore without .env would leak a secret into the image",
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
-      "file_path": "deploy/Dockerfile.dockerignore",
-      "content": "node_modules\n.git\n.data\ndeploy/data\n"
+      "file_path": "docker/nuxt/Dockerfile.dockerignore",
+      "content": "node_modules\n.git\n"
     },
     "deny": [
       "dockerignore"
@@ -90,7 +135,7 @@
     "origin": "usage",
     "tool_name": "Write",
     "tool_input": {
-      "file_path": "deploy/nginx/default.conf.template",
+      "file_path": "docker/nginx/default.conf.template",
       "content": "server {\n    listen 443 ssl;\n    ssl_certificate /etc/nginx/certs/cert.pem;\n    ssl_certificate_key /etc/nginx/certs/key.pem;\n    location / {\n        proxy_pass http://node:3000;\n    }\n}\n"
     },
     "deny": [

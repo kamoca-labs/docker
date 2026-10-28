@@ -16,6 +16,6 @@ test('a real denial becomes a ready case for cases.json', () => {
 
 test('an allowed call creates no case', () => {
   const box = sandbox()
-  allowed(box.write('single-env', 'compose.yaml', VALID))
+  allowed(box.write('single-env', 'compose.dev.yaml', VALID))
   assert.ok(!fs.existsSync(box.casesLog))
 })

@@ -1,10 +1,10 @@
-import { composeContent, deny, field, isDeploy, readInput, services, targetPath, values } from '../lib.ts'
+import { composeContent, composeRole, deny, field, readInput, services, targetPath, values } from '../lib.ts'
 
 const USER = /^\$\{UID:-\d+\}:\$\{GID:-\d+\}$/
 const READ_ONLY_OR_MEMORY = /:ro$|(^|\n)read_only\s*:\s*true\b|type\s*:\s*["']?tmpfs/
 
 const input = readInput()
-const yaml = isDeploy(targetPath(input)) ? null : composeContent(input)
+const yaml = composeRole(targetPath(input)) === 'dev' ? composeContent(input) : null
 const withoutUser = yaml === null ? [] : services(yaml)
   .filter((service) => values(field(service, 'volumes')).some((volume) => !READ_ONLY_OR_MEMORY.test(volume)))
   .filter((service) => !USER.test(values(field(service, 'user'))[0] ?? ''))

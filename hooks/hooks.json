@@ -18,6 +18,12 @@
           },
           {
             "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/service-build.ts\"",
+            "timeout": 10,
+            "statusMessage": "docker:service-build: every service has a Dockerfile"
+          },
+          {
+            "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/container-name.ts\"",
             "timeout": 10,
             "statusMessage": "docker:container-name: container_name = project + service"
@@ -48,9 +54,9 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/deploy-folder.ts\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/docker-folder.ts\"",
             "timeout": 10,
-            "statusMessage": "docker:deploy-folder: prod in ./deploy"
+            "statusMessage": "docker:docker-folder: compose in the root, the rest in docker/<domain>"
           },
           {
             "type": "command",
