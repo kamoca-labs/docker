@@ -1,0 +1,36 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY: $CI_REGISTRY_IMAGE
+  IMAGE_TAG: $CI_COMMIT_SHA
+  COMPOSE: docker compose -f compose.yaml -f compose.prod.yaml
+
+build:
+  stage: build
+  tags: [<build-runner-tag>]
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+  variables:
+    # the build uses no secret: a fake value for each ${VAR:?...} of compose.prod.yaml
+    DB_PASSWORD: no-secret-in-build
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - $COMPOSE build
+    - $COMPOSE push
+
+deploy:
+  stage: deploy
+  tags: [<deploy-runner-tag>]
+  environment: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+  variables:
+    REGISTRY_HOST: $CI_REGISTRY
+    REGISTRY_USER: gitlab-ci-token
+    REGISTRY_TOKEN: $CI_JOB_TOKEN
+  script:
+    - sh docker/deploy.sh "$CI_COMMIT_SHA"
