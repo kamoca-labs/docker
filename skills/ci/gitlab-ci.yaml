@@ -18,8 +18,7 @@ build:
     DB_PASSWORD: no-secret-at-build
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
-    - $COMPOSE build
-    - $COMPOSE push
+    - sh docker/build.sh
 
 deploy:
   stage: deploy

@@ -14,5 +14,5 @@ scp compose.yaml compose.prod.yaml "$host:$dir/"
 ssh "$host" "cd $dir \
   && export IMAGE_TAG=$sha \
   && $compose pull \
-  && $compose up -d --no-build --wait \
+  && $compose up -d --no-build --wait --remove-orphans \
   && docker image prune -af --filter 'until=168h'"

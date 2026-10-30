@@ -28,8 +28,7 @@ jobs:
       - run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: $COMPOSE build
-      - run: $COMPOSE push
+      - run: sh docker/build.sh
 
   deploy:
     needs: build

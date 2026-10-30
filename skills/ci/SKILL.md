@@ -81,7 +81,7 @@ Prerequisite: `compose.yaml`, `compose.prod.yaml` and `docker/<domain>/Dockerfil
    If no row fits, stop. Say what is missing and ask for a decision.
 4. **Show the plan and wait for approval.** Use a short table with the forge, the probe, the strategy, the jobs, the variables and what each one changes on the server.
 5. **Write the pipeline** from the template of the forge, next to this skill: `gitlab-ci.yaml` (becomes `.gitlab-ci.yml`) or `github-actions.yaml` (becomes `.github/workflows/deploy.yml`). Change the `build` job for the strategy (section below). Fill in the runners.
-6. **Write `docker/deploy.sh`** from `deploy.template.sh` next to this skill, with the change for the strategy (table below). Update the section "Prod: deploy" of `docker/README.md` with the same flow.
+6. **Write `docker/deploy.sh`** from `deploy.template.sh` next to this skill, with the change for the strategy (table below). Update the section "Prod: deploy" of `docker/README.md` with the same flow. In the `registry` strategy, also write `docker/build.sh` from `build.template.sh`. Set `project` to the name in `compose.prod.yaml`. List one `<service>:<image>` pair for each distinct image (`docker compose -f compose.yaml -f compose.prod.yaml config --images` shows them).
 7. **Variables.** Set the non-secret variables with the approval of the user: `DEPLOY_HOST` and `DEPLOY_PATH` (GitLab: project variables. GitHub: `gh variable set`). Claude does not set secrets (SSH key, deploy key, token). Give the user the variable name and where to set it. Prefer the access that already exists: the user of a self-hosted runner usually has the key of the server. On GitHub, a hosted runner needs the secret `DEPLOY_SSH_KEY` and the variable `DEPLOY_KNOWN_HOSTS`.
 8. **Server.** The `.env.prod` of the server holds `REGISTRY` (in the `registry` strategy) and `APP_NAME`. Check that `compose.prod.yaml` resolves with `docker compose ... config`.
 9. **Cleanup.** Apply the section "Cleanup" below, with the approval of the user.
@@ -93,7 +93,7 @@ The build uses no secret. The job sets a dummy value for each `${VAR:?...}` of `
 
 `ssh-load` and `remote-build` write to the server. So their `build` runs only on the default branch and on manual trigger. The `build` of `registry` runs on every branch. The deploy runs only on the default branch and on manual trigger.
 
-`registry` (already in the templates): login, `build` and `push`. On GitHub, `REGISTRY` is `ghcr.io/<owner>/<repo>` in **lowercase**, and the template already converts it.
+`registry` (already in the templates): login, then `sh docker/build.sh`. The script runs `docker buildx bake --push` and keeps the layer cache of each image in the registry (the `buildcache` tag), so the next build reuses the layers. It creates a `docker-container` builder, because the default builder cannot export a cache to a registry. Behind a dind service with TLS, it first creates a Docker context from the environment, with a name that differs from the builder name (a builder cannot share its name with a context). The `build` job does not need to wait for the test stage. Make `deploy` wait for `build` and for the tests. On GitHub, `REGISTRY` is `ghcr.io/<owner>/<repo>` in **lowercase**, and the template already converts it.
 
 `ssh-load`: no `REGISTRY`. The compose file uses the default `local`.
 

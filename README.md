@@ -73,6 +73,7 @@ plugins/docker/
 ├── skills/ci/gitlab-ci.yaml           template of .gitlab-ci.yml
 ├── skills/ci/github-actions.yaml      template of the GitHub deploy workflow
 ├── skills/ci/github-cleanup.yaml      template of the GHCR cleanup workflow
+├── skills/ci/build.template.sh        template of docker/build.sh (registry strategy)
 ├── skills/ci/deploy.template.sh       template of docker/deploy.sh
 ├── skills/tune/compare-config.sh      snapshot and diff of docker compose config
 ├── skills/<topic>/SKILL.md  private sub-skills, shared
