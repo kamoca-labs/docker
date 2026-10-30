@@ -1,10 +1,10 @@
 ---
-name: prod-image
+name: production
 description: Single Dockerfile per service in docker/<domain> (stages base, dev, build and prod), dockerignore, prod compose with image and IMAGE_TAG, local prod test and signs of a slow image or build. Used by docker:create and docker:tune when they write or optimize prod.
 user-invocable: false
 ---
 
-# Production image
+# Production environment
 
 ## Dockerfile (`docker/<domain>/Dockerfile`)
 

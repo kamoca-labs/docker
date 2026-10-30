@@ -28,7 +28,8 @@ They stay out of the `/` menu, but the model loads them with the `Skill` tool. C
 |---|---|
 | `docker:rules` | rules enforced by the hooks, the file layout and the split between base and environment |
 | `docker:versions` | newest tag on Docker Hub and major version changes |
-| `docker:hot-reload` | dev with hot reload and the host user |
-| `docker:prod-image` | single multi-stage Dockerfile, dockerignore, prod compose and local prod test |
+| `docker:development` | dev compose file, host user, data folders and the start command |
+| `docker:hot-reload` | watch command for each stack and polling |
+| `docker:production` | single multi-stage Dockerfile, dockerignore, prod compose and local prod test |
 | `docker:https` | nginx with HTTP/2 and HTTP/3 and certificates |
 | `docker:measure` | measurement of build, up, image, app and database |

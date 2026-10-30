@@ -14,7 +14,7 @@ Not every place has an image registry, and not every runner can reach the server
 2. **Register.** The CI publishes each image as a package in the registry of the forge (GitLab Container Registry or GitHub `ghcr.io`), tagged with the commit SHA.
 3. **Deploy.** The CI sends only two files to the server: `compose.yaml` and `compose.prod.yaml`. The `.env.prod` already lives on the server. The server runs `docker compose pull` and `up -d --no-build --wait` with `IMAGE_TAG` set to that SHA. The server never holds the code and never builds.
 
-The tests, and the rule that the merge does not run them again, belong to the pipeline flow. Use `git:cicd` for that flow when the git plugin is installed.
+The tests, and the rule that the merge does not run them again, belong to the pipeline flow. Use `git:ci-cd` for that flow when the git plugin is installed.
 
 Prerequisite: `compose.yaml`, `compose.prod.yaml` and `docker/<domain>/Dockerfile`. If they are missing, use `docker:create` or `docker:tune`. With an argument, skip the choice in step 3 and confirm it only with the probe.
 
@@ -131,7 +131,7 @@ The template reads `REGISTRY_HOST`, `REGISTRY_USER` and `REGISTRY_TOKEN` from th
 
 ## Deploy
 
-The deploy is **always automatic**: the `deploy` job runs on each merge to the default branch, after `build`. Never use `when: manual` on it (GitLab) or `environment` with approval (GitHub). The `--wait` of `deploy.sh` makes the job fail if a service does not become `healthy`. With a staging and a production environment, staging deploys on every merge and production deploys only by hand, with the target chosen in the manual trigger (`git:cicd` has the pipeline for it).
+The deploy is **always automatic**: the `deploy` job runs on each merge to the default branch, after `build`. Never use `when: manual` on it (GitLab) or `environment` with approval (GitHub). The `--wait` of `deploy.sh` makes the job fail if a service does not become `healthy`. With a staging and a production environment, staging deploys on every merge and production deploys only by hand, with the target chosen in the manual trigger (`git:ci-cd` has the pipeline for it).
 
 The deploy can also start by hand, and the path stays automatic:
 

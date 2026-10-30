@@ -23,15 +23,15 @@ Load `docker:rules` and bring the existing files to the rules. The hooks deny an
 | named volume with data | Stop the service. Copy the data to the local folder (`docker run --rm -v <volume>:/from -v ./docker/<service>/data/dev:/to alpine cp -a /from/. /to`). Point the bind mount to it. Check the data before you remove the volume. **Never** remove the volume without the confirmation of the user |
 | `.env.dev`, `.env.production`, `deploy/.env` | `./.env` for dev and `./.env.prod` for prod, each one read by the `env_file` of the compose file of the environment |
 | loose `image: postgres:16` in the compose file (service without a Dockerfile) | `docker/<service>/Dockerfile` with `FROM postgres:<version>` and `build` in `compose.yaml` |
-| `Dockerfile.dev` and `Dockerfile.prod`, or two Dockerfiles | one `docker/<domain>/Dockerfile` with the stages `base`, `dev`, `build` and `prod` (`docker:prod-image`) |
+| `Dockerfile.dev` and `Dockerfile.prod`, or two Dockerfiles | one `docker/<domain>/Dockerfile` with the stages `base`, `dev`, `build` and `prod` (`docker:production`) |
 | compose file with the extension `.yml` or `docker-compose*` | `compose.yaml`, `compose.dev.yaml` and `compose.prod.yaml` in the root |
 | `app`, `db`, container without a name | service named after the technology (`node`, `postgres`) and `container_name: ${COMPOSE_PROJECT_NAME}-<service>`. Also change the host in the connection URLs (`@db:` becomes `@postgres:`) |
 | dev running as root, root files in the folder | `user: "${UID:-1000}:${GID:-1000}"`, `UID`/`GID` generated in the `.env` and `sudo chown -R "$(id -u):$(id -g)" docker/*/data` (run `sudo` with the approval of the user) |
 | Dockerfile without an ignore file, or with `.env` in the context | `Dockerfile.dockerignore` next to it, with `**/.env`, `.env.prod`, `.git`, `**/data`, `**/certs` and the dependencies of the stack |
 | `docker-compose.prod.yml` in the root, or `deploy/compose.yaml` (old layout) | `compose.prod.yaml` in the root. Move `deploy/Dockerfile`, `deploy/data`, `deploy/certs` and `deploy/nginx` to `docker/<domain>/` (`data/prod`, `certs/prod`) |
 | `.data/<service>` and `certs/` in the root | `docker/<service>/data/dev` and `docker/nginx/certs/dev` |
-| dev without hot reload (code copied into the image) | `docker:hot-reload` |
-| prod image with toolchain and dev dependencies | `docker:prod-image` |
+| dev without hot reload (code copied into the image) | `docker:development` |
+| prod image with toolchain and dev dependencies | `docker:production` |
 | old image version (`postgres:16`, `php:8.2`) or `latest` | `docker:versions`, including the major version change of a database with data |
 | nginx with TLS on HTTP/1.1 only, without `443/udp` | `docker:https` |
 
@@ -79,7 +79,7 @@ Make one change at a time. After each change, start the environment (step 1), me
 
 ### Build and image
 
-The signs and the changes are in `docker:prod-image`.
+The signs and the changes are in `docker:production`.
 
 ### Up
 
