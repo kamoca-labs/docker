@@ -1,6 +1,6 @@
 {
   "name": "docker",
   "description": "/docker:docker routes to /docker:create, /docker:tune or /docker:ci, which share private sub-skills. /docker:ci probes what the project has (registry, runner, server) and builds the CI/CD in GitLab or GitHub with the strategy that fits. /docker:create builds compose.yaml (base), compose.dev.yaml and compose.prod.yaml in the root, with one Dockerfile per service in ./docker used by dev (hot reload) and prod (lean image), and the docker/README.md with the up command of each environment. /docker:tune brings an existing setup to the rules, splits it into base and difference, and optimizes it with measurements. Images use the newest version and nginx uses HTTP/2 and HTTP/3. Hooks enforce project, service and container names, host UID/GID in dev, volumes in a local folder, one .env per environment, defaults, dockerignore and HTTP/3.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": { "name": "kamoca" }
 }
