@@ -38,8 +38,13 @@ export function deny(rule: string, reason: string): never {
   process.exit(2)
 }
 
-export function isDeploy(file: string): boolean {
-  return file.split(path.sep).includes('deploy')
+export type Role = 'base' | 'dev' | 'prod'
+
+const ROLE_FILE = /^compose(?:\.(dev|prod))?\.yaml$/
+
+export function composeRole(file: string): Role | null {
+  const match = path.basename(file).match(ROLE_FILE)
+  return match ? (match[1] as Role | undefined) ?? 'base' : null
 }
 
 export function targetPath({ tool_input, cwd }: HookInput): string {

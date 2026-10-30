@@ -26,11 +26,11 @@ test('every rule has its own test', () => {
 })
 
 const SKILLS_DIR = path.join(HOOKS_DIR, '..', 'skills')
-const PUBLIC_SKILLS = ['docker', 'create', 'tune']
+const PUBLIC_SKILLS = ['docker', 'create', 'tune', 'ci']
 const skills = fs.readdirSync(SKILLS_DIR)
 const skillText = (skill: string) => fs.readFileSync(path.join(SKILLS_DIR, skill, 'SKILL.md'), 'utf8')
 
-test('only the hub, create and tune appear in the / menu, and the sub-skills are private', () => {
+test('only the hub, create, tune and ci appear in the / menu, and the sub-skills are private', () => {
   const hidden = skills.filter((skill) => /^user-invocable: false$/m.test(skillText(skill))).sort()
   assert.deepStrictEqual(hidden, skills.filter((skill) => !PUBLIC_SKILLS.includes(skill)).sort())
 })

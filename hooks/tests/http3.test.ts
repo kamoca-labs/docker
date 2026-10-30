@@ -18,7 +18,7 @@ const NGINX_PORTS = '    ports:\n      - "${HTTPS_PORT:-443}:443"\n      - "${HT
 
 test('accepts nginx with HTTP/2, HTTP/3 and Alt-Svc', () => {
   allowed(sandbox().write(RULE, 'nginx/default.conf.template', MODERN))
-  allowed(sandbox().write(RULE, 'deploy/nginx/default.conf', MODERN))
+  allowed(sandbox().write(RULE, 'docker/nginx/default.conf', MODERN))
 })
 
 test('denies nginx with TLS on HTTP/1.1 only', () => {

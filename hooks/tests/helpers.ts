@@ -25,7 +25,20 @@ services:
     environment:
       POSTGRES_PASSWORD: \${DB_PASSWORD:-postgres}
     volumes:
-      - \${DATA_DIR:-./.data}/postgres:/var/lib/postgresql
+      - \${DATA_DIR:-./docker/postgres/data/dev}/postgres:/var/lib/postgresql
+`
+
+export const BASE = `services:
+  node:
+    container_name: \${COMPOSE_PROJECT_NAME}-node
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+  postgres:
+    container_name: \${COMPOSE_PROJECT_NAME}-postgres
+    build:
+      context: docker/postgres
+      dockerfile: Dockerfile
 `
 
 export type ToolInput = { file_path: string, content?: string, old_string?: string, new_string?: string, replace_all?: boolean }

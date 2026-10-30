@@ -9,7 +9,7 @@ test('accepts relative, absolute and variable bind mounts and tmpfs', () => {
 })
 
 test('denies a named volume in a service', () => {
-  denied(sandbox().write(RULE, 'compose.yaml', VALID.replace('${DATA_DIR:-./.data}/postgres', 'pgdata')), /postgres: pgdata/)
+  denied(sandbox().write(RULE, 'compose.yaml', VALID.replace('${DATA_DIR:-./docker/postgres/data/dev}/postgres', 'pgdata')), /postgres: pgdata/)
 })
 
 test('denies an anonymous volume', () => {

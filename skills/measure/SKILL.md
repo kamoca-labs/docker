@@ -8,6 +8,8 @@ user-invocable: false
 
 Run each measurement **3 times** and use the median. Always use the same endpoint and the same load, so that before and after are comparable.
 
+Each `docker compose` command below takes the `-f` flags of the measured environment. Dev uses `-f compose.yaml -f compose.dev.yaml`. Prod uses `-f compose.yaml -f compose.prod.yaml --env-file .env.prod`.
+
 | Measurement | How |
 |---|---|
 | Cold build | `time docker compose build --no-cache <service>` |

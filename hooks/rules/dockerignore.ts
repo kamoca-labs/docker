@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { contentAfter, deny, readInput, targetPath } from '../lib.ts'
 
-const REQUIRED = ['**/.env', '.git', '.data', 'deploy/data']
+const REQUIRED = ['**/.env', '.env.prod', '.git', '**/data', '**/certs']
 
 const input = readInput()
 const file = targetPath(input)
@@ -18,8 +18,6 @@ if (ignore !== null) {
   }
 }
 
-const candidates = [`${file}.dockerignore`, path.join(path.dirname(file), '.dockerignore'), path.join(path.dirname(file), '..', '.dockerignore')]
-
-if (/^Dockerfile/.test(name) && !name.endsWith('.dockerignore') && !candidates.some((candidate) => fs.existsSync(candidate))) {
+if (/^Dockerfile/.test(name) && !name.endsWith('.dockerignore') && !fs.existsSync(`${file}.dockerignore`)) {
   deny('dockerignore', `${name} has no .dockerignore. First create ${name}.dockerignore next to it, with ${REQUIRED.join(', ')}.`)
 }

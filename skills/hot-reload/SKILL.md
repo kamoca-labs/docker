@@ -1,6 +1,6 @@
 ---
 name: hot-reload
-description: Dev environment with hot reload and the host user. Mounted code, a watch command per stack, UID/GID generated in the .env, data folders created before start, polling when the watcher fails. Used by docker:create and docker:tune in the dev compose file.
+description: Dev environment with hot reload and the host user in compose.dev.yaml. Mounted code, target dev, a watch command per stack, UID/GID generated in the .env, data folders created before start, polling when the watcher fails. Used by docker:create and docker:tune in the dev compose file.
 user-invocable: false
 ---
 
@@ -8,10 +8,10 @@ user-invocable: false
 
 ## Host user
 
-- Set `user: "${UID:-1000}:${GID:-1000}"` on every dev service that mounts a local folder with write access, the database included. Files that the service writes (`node_modules`, `vendor`, `.data/postgres`) then belong to your user and need no `sudo` to remove. A read-only mount (`:ro`, like the nginx config) needs no user.
+- Set `user: "${UID:-1000}:${GID:-1000}"` on every dev service that mounts a local folder with write access, the database included. Files that the service writes (`node_modules`, `vendor`, `docker/postgres/data/dev`) then belong to your user and need no `sudo` to remove. A read-only mount (`:ro`, like the nginx certificates) needs no user.
 - Always generate `UID` and `GID` in the dev `.env`. Never leave the default. Run `printf 'UID=%s\nGID=%s\n' "$(id -u)" "$(id -g)" >> .env` (if they are not there yet). A domain user has a UID far from 1000.
-- Run `mkdir -p .data/<service>` for each volume **before** the start. If Docker creates the folder, root owns it and the service, which runs as you, cannot write.
-- Check with `ls -ln .data`. The owner must be equal to `id -u`.
+- Run `mkdir -p docker/<service>/data/dev` for each volume **before** the start. If Docker creates the folder, root owns it and the service, which runs as you, cannot write.
+- Check with `ls -ln docker/<service>/data`. The owner must be equal to `id -u`.
 
 ## By stack
 
@@ -28,15 +28,17 @@ If the watcher does not see the change (Docker Desktop, WSL2 with the code on Wi
 
 To check: change a file of the app, confirm in the log or in the response that it reloaded, and revert the change.
 
-## Example
+## Example (`compose.dev.yaml`)
+
+Only the dev difference. The `build`, the `container_name`, the `depends_on` and the `healthcheck` come from `compose.yaml`.
 
 ```yaml
 name: dev-${APP_NAME:-shop}
 
 services:
   node:
-    container_name: ${COMPOSE_PROJECT_NAME}-node
-    image: node:24-alpine
+    build:
+      target: dev
     working_dir: /app
     user: "${UID:-1000}:${GID:-1000}"
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
@@ -47,22 +49,21 @@ services:
       - "${APP_PORT:-5173}:5173"
     volumes:
       - ./:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   postgres:
-    container_name: ${COMPOSE_PROJECT_NAME}-postgres
-    image: postgres:18-alpine
+    build:
+      target: dev
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       POSTGRES_DB: ${DB_NAME:-shop}
       POSTGRES_USER: ${DB_USER:-shop}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-shop}
     volumes:
-      - ./.data/postgres:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
-      interval: 5s
-      start_period: 10s
+      - ./docker/postgres/data/dev:/var/lib/postgresql
+```
+
+Start it with:
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up -d --wait
 ```
