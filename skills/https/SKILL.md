@@ -1,6 +1,6 @@
 ---
 name: https
-description: HTTP server with HTTP/2 and HTTP/3. Covers the nginx config, TCP and UDP ports, the self-signed certificate in dev (certs/generate.sh), the certificate copied to deploy/certs in prod, and how to check h2 and h3. Used by docker:create and docker:tune when there is an HTTP server.
+description: HTTP server with HTTP/2 and HTTP/3. Covers the nginx config in docker/nginx, TCP and UDP ports, the self-signed certificate in dev (docker/nginx/certs/generate.sh), the certificate copied to docker/nginx/certs/prod in prod, and how to check h2 and h3. Used by docker:create and docker:tune when there is an HTTP server.
 user-invocable: false
 ---
 
@@ -8,7 +8,7 @@ user-invocable: false
 
 The default HTTP server is the official nginx, which includes the HTTP/2 and HTTP/3 modules. It starts with TLS even in dev, because browsers do not use HTTP/2 or HTTP/3 without TLS.
 
-`nginx/default.conf.template`: the image replaces the environment variables (`${HTTPS_PORT}`) and keeps the nginx variables (`$host`).
+`docker/nginx/default.conf.template`: the image replaces the environment variables (`${HTTPS_PORT}`) and keeps the nginx variables (`$host`).
 
 ```nginx
 server {
@@ -34,26 +34,46 @@ server {
 }
 ```
 
-The service in the compose file:
+The Dockerfile (`docker/nginx/Dockerfile`) puts the configuration inside the image. A new image recreates the container by itself, so nobody recreates nginx by hand.
+
+```dockerfile
+FROM nginx:1-alpine AS base
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+FROM base AS dev
+FROM base AS prod
+```
+
+The service in `compose.yaml` (the context is `docker/nginx`, so the `dockerfile` is only `Dockerfile`):
 
 ```yaml
   nginx:
     container_name: ${COMPOSE_PROJECT_NAME}-nginx
-    image: nginx:1-alpine
+    build:
+      context: docker/nginx
+      dockerfile: Dockerfile
     environment:
       HTTPS_PORT: ${HTTPS_PORT:-443}
     ports:
       - "${HTTP_PORT:-80}:80"
       - "${HTTPS_PORT:-443}:443"
       - "${HTTPS_PORT:-443}:443/udp"
-    volumes:
-      - ./nginx:/etc/nginx/templates:ro
-      - ./certs:/etc/nginx/certs:ro
 ```
+
+Each environment compose file has only the `target` and the certificate of the environment:
+
+```yaml
+  nginx:
+    build:
+      target: dev
+    volumes:
+      - ./docker/nginx/certs/dev:/etc/nginx/certs:ro
+```
+
+`compose.prod.yaml` has the same, with `target: prod` and `./docker/nginx/certs/prod`.
 
 - **`443/udp`**: HTTP/3 runs on QUIC, which uses UDP. Without this port, the browser stays on HTTP/2 and shows no error.
 - **`Alt-Svc`**: the browser finds HTTP/3 through this header. The announced port is the external one (`HTTPS_PORT`).
-- **Dev certificate**: `certs/generate.sh` (in version control) generates a self-signed certificate for `localhost`:
+- **Dev certificate**: `docker/nginx/certs/generate.sh` (in version control) generates a self-signed certificate for `localhost`:
 
   ```sh
   #!/bin/sh
@@ -68,7 +88,7 @@ The service in the compose file:
   echo "self-signed certificate in $dir (cert.pem, key.pem)"
   ```
 
-- **Prod**: `deploy/compose.yaml` mounts `./certs:/etc/nginx/certs:ro`, which is `deploy/certs/`. On the server, copy the real certificate there (`cert.pem` with the full chain, and `key.pem`). To simulate it locally, generate the certificate in that folder with `./certs/generate.sh deploy/certs`. The certificate never enters the image: put `certs` and `deploy/certs` in the dockerignore.
+- **Prod**: `compose.prod.yaml` mounts `./docker/nginx/certs/prod:/etc/nginx/certs:ro`. On the server, copy the real certificate there (`cert.pem` with the full chain, and `key.pem`). To simulate it locally, generate the certificate in that folder with `docker/nginx/certs/generate.sh docker/nginx/certs/prod`. The certificate never enters the image: put `**/certs` in the dockerignore.
 - **Check** (the host curl usually has no HTTP/3, so run the h3 test in a Debian container):
 
   ```bash
