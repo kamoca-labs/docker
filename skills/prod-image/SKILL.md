@@ -15,7 +15,7 @@ Use one Dockerfile per domain, for dev and prod. The stages:
 | `base` | official image in the version from `docker:versions`, user, system dependencies and lockfile. Dev and prod inherit from it |
 | `dev` | `FROM base`, dev dependencies and the server in watch mode. The code comes mounted from `./` |
 | `build` | `FROM base`, dependencies, code and artifact |
-| `prod` | minimal runtime, only the artifact from `build`, a non-root `USER` and a `HEALTHCHECK` |
+| `prod` | minimal runtime, only the artifact from `build` and a non-root `USER`. The healthcheck lives in `compose.yaml`, so dev and prod share it |
 
 - Use multi-stage. `build` has the toolchain. `prod` has only the artifact.
 - Use a `-alpine`, `-slim` or distroless base.
