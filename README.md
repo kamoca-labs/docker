@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/icon.png" alt="Docker plugin blueprint icon" width="180">
+</p>
+
 # Plugin `docker`
 
 ## Contents
