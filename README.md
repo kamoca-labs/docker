@@ -12,6 +12,7 @@
 - [Rules](#rules)
 - [Files](#files)
 - [Use cases](USAGE.md)
+- [Release notes](CHANGELOG.md)
 
 ## Installation
 
