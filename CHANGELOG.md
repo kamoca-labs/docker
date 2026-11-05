@@ -2,7 +2,7 @@
 
 Notes reconstructed from repository history and final manifest versions. Dates identify the recorded version changes, not earlier published releases. The temporary 0.3.0/0.4.0 values in the architecture branch were explicitly corrected to 0.2.0 before merge; they are not separate releases here.
 
-## Unreleased
+## 0.3.0 (2026-11-05)
 
 ### Breaking changes
 
