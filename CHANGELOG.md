@@ -2,6 +2,25 @@
 
 Notes reconstructed from repository history and final manifest versions. Dates identify the recorded version changes, not earlier published releases. The temporary 0.3.0/0.4.0 values in the architecture branch were explicitly corrected to 0.2.0 before merge; they are not separate releases here.
 
+## Unreleased
+
+### Breaking changes
+
+- Only four skills are visible to Claude: `docker`, `create`, `tune` and `ci`. The listing of docker drops from 11 descriptions (3,921 characters) to 4 (1,149 characters), as `SKILLS-ARCHITECTURE.md` in the craft repo plans. `node scripts/skill-budget.ts` prints the count.
+- The sub-skills are reference files. Claude reads them with `Read`, so `docker:<name>` no longer loads with the `Skill` tool. Update integrations that use the old names:
+  - `docker:rules` → `skills/docker/references/rules.md`
+  - `docker:development` → `skills/docker/references/development.md`
+  - `docker:production` → `skills/docker/references/production.md`
+  - `docker:https` → `skills/docker/references/https.md`
+  - `docker:measure` → `skills/docker/references/measure.md`
+  - `docker:versions` → `skills/docker/references/versions.md`
+  - `docker:hot-reload` → `skills/docker/references/hot-reload.md`
+
+### Improvements
+
+- The descriptions of the entry skills have 300 characters or less. Each one puts the main use first, then "Use when ...".
+- The structure test guards the layout. Only the entry skills are visible, each description has 300 characters or less and no colon with a space, the hub lists every reference, every reference is linked from a `SKILL.md` and links no other file, and no file names a moved skill.
+
 ## 0.2.0 — 2026-10-30
 
 ### Breaking changes

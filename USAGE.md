@@ -5,6 +5,7 @@
 - [Dockerize a project](#dockerize-a-project)
 - [Start dev and prod](#start-dev-and-prod)
 - [Local HTTPS](#local-https)
+- [Ask about one topic](#ask-about-one-topic)
 - [Adjust and optimize](#adjust-and-optimize)
 - [CI/CD in GitLab or GitHub](#cicd-in-gitlab-or-github)
 - [When a hook denies a write](#when-a-hook-denies-a-write)
@@ -49,6 +50,15 @@ docker/nginx/certs/generate.sh docker/nginx/certs/prod   # simulates prod. On th
 ```
 
 nginx starts with HTTP/2 and HTTP/3. To check h3, curl must support it. The curl of the host usually does not, so `/docker:create` tests in a `debian:trixie-slim` container. The browser warns that the certificate is self-signed. Accept it once for `localhost`.
+
+## Ask about one topic
+
+```
+/docker:docker how do I turn on HTTP/3 in nginx?
+/docker:docker which Postgres version should I use?
+```
+
+For a question on one topic, Claude reads only the reference of that topic in `skills/docker/references/` (for example, `https.md` or `versions.md`). It does not run create or tune.
 
 ## Adjust and optimize
 

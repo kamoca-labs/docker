@@ -1,14 +1,8 @@
----
-name: development
-description: Dev environment in compose.dev.yaml. The dev stage of the Dockerfile, the whole prod architecture with the difference of dev only, the host user, UID/GID generated in the .env, mounted code, data folders created before start, direct ports and the start command. Used by docker:create and docker:tune when they write the dev compose file.
-user-invocable: false
----
-
 # Development environment
 
 Dev runs the same services as prod. Only the difference goes in `compose.dev.yaml`: `target: dev`, the mounts, the host user and the direct ports. The `build`, the `container_name`, the `depends_on` and the `healthcheck` come from `compose.yaml`.
 
-For the watch command of each stack and for polling, load `docker:hot-reload`.
+The watch command of each stack and polling are in the hot-reload reference.
 
 ## Host user
 
@@ -64,4 +58,4 @@ docker compose -f compose.yaml -f compose.dev.yaml up -d --wait
 1. `docker compose -f compose.yaml -f compose.dev.yaml config` resolves with no error and shows the names.
 2. Every service is `healthy` after `up -d --wait`, and the app answers.
 3. The owner of each `docker/<service>/data/dev` folder equals `id -u`.
-4. Hot reload works (`docker:hot-reload`).
+4. Hot reload works. The hot-reload reference has the check.

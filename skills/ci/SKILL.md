@@ -1,6 +1,6 @@
 ---
 name: ci
-description: Creates the CI/CD of the Docker environment of the project in GitLab CI or GitHub Actions (prod image build, automatic deploy and rollback). It probes what the project has (image registry, runner that builds, SSH access to the server) and chooses the strategy that fits - registry, ssh-load, remote-build or server-build. Use when asked for CI, CD, a pipeline, a workflow, automatic deploy, a registry or a rollback for a project with docker/ and compose.prod.yaml.
+description: Creates the CI/CD of the Docker environment in GitLab CI or GitHub Actions, with prod image build, automatic deploy and rollback. Probes the registry, runner and server and picks registry, ssh-load, remote-build or server-build. Use when asked for CI, CD, a pipeline, deploy or rollback of Docker.
 argument-hint: "[registry|ssh-load|remote-build|server-build]"
 ---
 
