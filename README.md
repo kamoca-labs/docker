@@ -31,24 +31,26 @@ A Docker environment with the same standard in every project. The flow is always
 
 | Command | Arguments | What it does |
 |---|---|---|
-| `/docker:docker` | `[what you want]` | Single entry point. Without Docker in the project, it goes to create. With Docker, it goes to tune. For a CI or deploy request, it goes to ci. For a specific question, it loads only the sub-skill of the topic |
+| `/docker:docker` | `[what you want]` | Single entry point. Without Docker in the project, it goes to create. With Docker, it goes to tune. For a CI or deploy request, it goes to ci. For a specific question, it reads only the reference of the topic |
 | `/docker:create` | `[dev\|prod] [stack or services]` | Images use the newest stable version, looked up on Docker Hub. It writes three compose files in the root (`compose.yaml` as the base, `compose.dev.yaml` and `compose.prod.yaml`) and one Dockerfile per service in `docker/<domain>`, the same for dev and prod. Dev has hot reload (mounted code, server in watch mode) and the host UID/GID in the `.env`. Prod is lean and has its own `.env.prod`. With an HTTP server, it adds nginx with HTTP/2 and HTTP/3 and `docker/nginx/certs/generate.sh` for the self-signed certificate. It writes `docker/README.md` with the dev and prod `up` commands, starts everything, checks hot reload and reports the baseline (build, up, size) |
 | `/docker:tune` | `[focus]` | Makes the setup start, brings it to the rules (moves a named volume to a local folder, with confirmation), splits the compose file into base and difference with `compare-config.sh` (the diff of `docker compose config` must be empty), gathers the `up` documentation in `docker/README.md`, measures (cold and warm build, up, image, resources, latency, database) and tests one optimization at a time: layers, cache, healthcheck, PgBouncer, Redis, second database, proxy. Only what gained stays |
 | `/docker:ci` | `[registry\|ssh-load\|remote-build\|server-build]` | Probes the project (image registry, runner that builds, SSH access to the server) and chooses the strategy that fits. `registry` builds and pushes with the SHA tag, and the server pulls. `ssh-load` needs no registry: the image goes through `docker save` and `docker load` over SSH. `remote-build` runs the build on the daemon of the server. `server-build` checks out the code on the server and builds there. It writes the pipeline (`.gitlab-ci.yml` or `.github/workflows/deploy.yml`) and `docker/deploy.sh`, with automatic deploy, manual trigger, rollback and registry cleanup |
 
-### Sub-skills
+### References
 
-They stay out of the `/` menu (`user-invocable: false`), but the model loads them with the `Skill` tool. Create and tune use the same ones, so each rule is written in one place.
+The shared knowledge lives in reference files in `skills/docker/references/`. They are not skills, so they add no description to the skill listing of each session. Claude reads a reference with the `Read` tool only when the step needs it. Create and tune read the same files, so each rule is written in one place.
 
-| Skill | Topic |
+| Reference | Topic |
 |---|---|
-| `docker:rules` | rules enforced by the hooks, the file layout and the split between base and environment |
-| `docker:versions` | newest tag on Docker Hub and major version changes |
-| `docker:development` | dev compose file, host user, data folders and the start command |
-| `docker:hot-reload` | watch command for each stack and polling |
-| `docker:production` | single multi-stage Dockerfile, dockerignore, prod compose and local prod test |
-| `docker:https` | nginx with HTTP/2 and HTTP/3 and certificates |
-| `docker:measure` | measurement of build, up, image, app and database |
+| `rules.md` | rules enforced by the hooks, the file layout and the split between base and environment |
+| `versions.md` | newest tag on Docker Hub and major version changes |
+| `development.md` | dev compose file, host user, data folders and the start command |
+| `hot-reload.md` | watch command for each stack and polling |
+| `production.md` | single multi-stage Dockerfile, dockerignore, prod compose and local prod test |
+| `https.md` | nginx with HTTP/2 and HTTP/3 and certificates |
+| `measure.md` | measurement of build, up, image, app and database |
+
+`node scripts/skill-budget.ts` prints the skills that Claude sees and the sum of their description characters.
 
 ## Rules
 
@@ -74,6 +76,7 @@ The hooks run on `Write` and `Edit` (on `Edit`, they check the file as it is aft
 plugins/docker/
 ├── .claude-plugin/plugin.json
 ├── skills/docker/SKILL.md   hub: routes to create, tune or ci
+├── skills/docker/references/<topic>.md   shared references, read by docker, create and tune
 ├── skills/{create,tune,ci}/SKILL.md
 ├── skills/create/README.template.md   template of the docker/README.md of the project
 ├── skills/ci/gitlab-ci.yaml           template of .gitlab-ci.yml
@@ -82,6 +85,6 @@ plugins/docker/
 ├── skills/ci/build.template.sh        template of docker/build.sh (registry strategy)
 ├── skills/ci/deploy.template.sh       template of docker/deploy.sh
 ├── skills/tune/compare-config.sh      snapshot and diff of docker compose config
-├── skills/<topic>/SKILL.md  private sub-skills, shared
+├── scripts/skill-budget.ts  skills visible to Claude and their description characters
 └── hooks/                   same structure as git: hooks.json, lib.ts, rules/, tests/
 ```

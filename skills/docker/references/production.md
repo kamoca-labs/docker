@@ -1,9 +1,3 @@
----
-name: production
-description: Single Dockerfile per service in docker/<domain> (stages base, dev, build and prod), dockerignore, prod compose with image and IMAGE_TAG, local prod test and signs of a slow image or build. Used by docker:create and docker:tune when they write or optimize prod.
-user-invocable: false
----
-
 # Production environment
 
 ## Dockerfile (`docker/<domain>/Dockerfile`)
@@ -12,7 +6,7 @@ Use one Dockerfile per domain, for dev and prod. The stages:
 
 | Stage | Content |
 |---|---|
-| `base` | official image in the version from `docker:versions`, user, system dependencies and lockfile. Dev and prod inherit from it |
+| `base` | official image in the version from the versions reference, user, system dependencies and lockfile. Dev and prod inherit from it |
 | `dev` | `FROM base`, dev dependencies and the server in watch mode. The code comes mounted from `./` |
 | `build` | `FROM base`, dependencies, code and artifact |
 | `prod` | minimal runtime, only the artifact from `build` and a non-root `USER`. The healthcheck lives in `compose.yaml`, so dev and prod share it |

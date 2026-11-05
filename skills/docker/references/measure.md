@@ -1,9 +1,3 @@
----
-name: measure
-description: How to measure the Docker environment. Covers cold and warm build time, time to healthy, image size, resources, and application and database latency, always as the median of 3 runs. Used by docker:create (baseline) and docker:tune (before and after each change).
-user-invocable: false
----
-
 # Measure
 
 Run each measurement **3 times** and use the median. Always use the same endpoint and the same load, so that before and after are comparable.

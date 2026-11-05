@@ -1,9 +1,3 @@
----
-name: versions
-description: Choice of image versions. Covers the lookup of the newest tag on Docker Hub, the tag policy, exceptions and the traps of a major version change (Postgres 18). Used by docker:create and docker:tune when they choose or update an image.
-user-invocable: false
----
-
 # Image versions
 
 Use the newest stable version of each technology. The memory of the model is always outdated, so look up the tag before you write it. Write the tag in the `FROM` of `docker/<domain>/Dockerfile`, not in an `image:` of the compose file:

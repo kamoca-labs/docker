@@ -1,6 +1,6 @@
 ---
 name: tune
-description: Adjusts the Docker setup that already exists in the project. First it makes the setup start and brings it to the rules of the plugin (names, host UID/GID in dev, volumes in a local folder, one .env per environment, defaults, dockerignore, hot reload in dev, lean prod, compose split into base, dev and prod, one Dockerfile per service in docker/<domain>, docker/README.md). Then it optimizes with measurements of build time, up time, image size and application metrics, and tests one architecture change at a time (pooler, cache, second database, proxy). Use when the Docker environment is broken, slow, heavy or out of the standard.
+description: Fixes and optimizes a Docker setup that exists. Makes it start, brings it to the plugin rules, splits compose into base, dev and prod, then measures and tests one change at a time. Use when the Docker environment is broken, slow, heavy or out of the standard.
 argument-hint: "[focus: build, up, image, database, ...]"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[focus: build, up, image, database, ...]"
 
 Work → rules → split → document → measure → change one thing → measure again → keep only what gained. Never optimize what does not start yet.
 
-Load each sub-skill with the `Skill` tool at the step where it applies.
+The references are in `../docker/references/`. Read each one with the `Read` tool at the step where it applies.
 
 ## 1. Make it work
 
@@ -16,24 +16,24 @@ Run `docker compose config` and `docker compose up -d --wait` with the compose f
 
 ## 2. Rules
 
-Load `docker:rules` and bring the existing files to the rules. The hooks deny any compose write that breaks the rules, so rewrite the old compose file completely. Do not patch it. What moves:
+Read `../docker/references/rules.md` and bring the existing files to the rules. The hooks deny any compose write that breaks the rules, so rewrite the old compose file completely. Do not patch it. What moves:
 
 | Before | After |
 |---|---|
 | named volume with data | Stop the service. Copy the data to the local folder (`docker run --rm -v <volume>:/from -v ./docker/<service>/data/dev:/to alpine cp -a /from/. /to`). Point the bind mount to it. Check the data before you remove the volume. **Never** remove the volume without the confirmation of the user |
 | `.env.dev`, `.env.production`, `deploy/.env` | `./.env` for dev and `./.env.prod` for prod, each one read by the `env_file` of the compose file of the environment |
 | loose `image: postgres:16` in the compose file (service without a Dockerfile) | `docker/<service>/Dockerfile` with `FROM postgres:<version>` and `build` in `compose.yaml` |
-| `Dockerfile.dev` and `Dockerfile.prod`, or two Dockerfiles | one `docker/<domain>/Dockerfile` with the stages `base`, `dev`, `build` and `prod` (`docker:production`) |
+| `Dockerfile.dev` and `Dockerfile.prod`, or two Dockerfiles | one `docker/<domain>/Dockerfile` with the stages `base`, `dev`, `build` and `prod` (`../docker/references/production.md`) |
 | compose file with the extension `.yml` or `docker-compose*` | `compose.yaml`, `compose.dev.yaml` and `compose.prod.yaml` in the root |
 | `app`, `db`, container without a name | service named after the technology (`node`, `postgres`) and `container_name: ${COMPOSE_PROJECT_NAME}-<service>`. Also change the host in the connection URLs (`@db:` becomes `@postgres:`) |
 | dev running as root, root files in the folder | `user: "${UID:-1000}:${GID:-1000}"`, `UID`/`GID` generated in the `.env` and `sudo chown -R "$(id -u):$(id -g)" docker/*/data` (run `sudo` with the approval of the user) |
 | Dockerfile without an ignore file, or with `.env` in the context | `Dockerfile.dockerignore` next to it, with `**/.env`, `.env.prod`, `.git`, `**/data`, `**/certs` and the dependencies of the stack |
 | `docker-compose.prod.yml` in the root, or `deploy/compose.yaml` (old layout) | `compose.prod.yaml` in the root. Move `deploy/Dockerfile`, `deploy/data`, `deploy/certs` and `deploy/nginx` to `docker/<domain>/` (`data/prod`, `certs/prod`) |
 | `.data/<service>` and `certs/` in the root | `docker/<service>/data/dev` and `docker/nginx/certs/dev` |
-| dev without hot reload (code copied into the image) | `docker:development` |
-| prod image with toolchain and dev dependencies | `docker:production` |
-| old image version (`postgres:16`, `php:8.2`) or `latest` | `docker:versions`, including the major version change of a database with data |
-| nginx with TLS on HTTP/1.1 only, without `443/udp` | `docker:https` |
+| dev without hot reload (code copied into the image) | `../docker/references/development.md` and `../docker/references/hot-reload.md` |
+| prod image with toolchain and dev dependencies | `../docker/references/production.md` |
+| old image version (`postgres:16`, `php:8.2`) or `latest` | `../docker/references/versions.md`, including the major version change of a database with data |
+| nginx with TLS on HTTP/1.1 only, without `443/udp` | `../docker/references/https.md` |
 
 Start everything again (step 1) before you continue.
 
@@ -63,7 +63,7 @@ The script `compare-config.sh` is next to this skill, and the snapshot stays out
 `docker/README.md` is the single place that tells how to start dev and prod.
 
 1. Search for the `up` in `README*` and in `docs/*.md`.
-2. Move the instructions to `docker/README.md`, in the format of the template `README.template.md` of `docker:create`, with dev and prod apart.
+2. Move the instructions to `docker/README.md`, in the format of the template `../create/README.template.md`, with dev and prod apart.
 3. In the place they came from, leave one line with the link to `docker/README.md`.
 4. Leave in place what is not `up`, such as the CI deploy flow in `docs/deploy.md`. Change only the old commands and paths.
 5. If there is no documentation, write `docker/README.md` from scratch with the template.
@@ -71,15 +71,15 @@ The script `compare-config.sh` is next to this skill, and the snapshot stays out
 
 ## 5. Measure
 
-Take a baseline before any optimization, with `docker:measure`.
+Take a baseline before any optimization, with `../docker/references/measure.md`.
 
 ## 6. Optimize
 
-Make one change at a time. After each change, start the environment (step 1), measure (`docker:measure`) and compare. If the gain is clear (10% or more on the measurement that the change targets, and no other measurement gets worse), keep the change. If it does not gain, revert it.
+Make one change at a time. After each change, start the environment (step 1), measure (`../docker/references/measure.md`) and compare. If the gain is clear (10% or more on the measurement that the change targets, and no other measurement gets worse), keep the change. If it does not gain, revert it.
 
 ### Build and image
 
-The signs and the changes are in `docker:production`.
+The signs and the changes are in `../docker/references/production.md`.
 
 ### Up
 
@@ -103,4 +103,4 @@ Change it only with a sign in the measurements. A new service follows the same r
 
 ## 7. Report
 
-Show the before and after table from `docker:measure`. Below it, write one line per change: what you did, the gain, and which changes you reverted because they did not gain. If the project has no build and deploy pipeline, offer `docker:ci`.
+Show the before and after table from `../docker/references/measure.md`. Below it, write one line per change: what you did, the gain, and which changes you reverted because they did not gain. If the project has no build and deploy pipeline, offer `docker:ci`.

@@ -1,12 +1,6 @@
----
-name: hot-reload
-description: Hot reload of the dev services. A watch command for each stack, the mounted code, polling when the watcher does not see the change, and how to check that it reloads. Used by docker:development.
-user-invocable: false
----
-
 # Hot reload
 
-The dev compose file, the host user and the data folders belong to `docker:development`. This skill covers only the watch command.
+The dev compose file, the host user and the data folders belong to the development reference. This file covers only the watch command.
 
 ## By stack
 

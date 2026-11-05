@@ -1,9 +1,3 @@
----
-name: https
-description: HTTP server with HTTP/2 and HTTP/3. Covers the nginx config in docker/nginx, TCP and UDP ports, the self-signed certificate in dev (docker/nginx/certs/generate.sh), the certificate copied to docker/nginx/certs/prod in prod, and how to check h2 and h3. Used by docker:create and docker:tune when there is an HTTP server.
-user-invocable: false
----
-
 # HTTP and HTTPS
 
 The default HTTP server is the official nginx, which includes the HTTP/2 and HTTP/3 modules. It starts with TLS even in dev, because browsers do not use HTTP/2 or HTTP/3 without TLS.
