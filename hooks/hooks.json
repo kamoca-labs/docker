@@ -14,7 +14,7 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/rules/service-name.ts\"",
             "timeout": 10,
-            "statusMessage": "docker:service-name: service named after the technology"
+            "statusMessage": "docker:service-name: code by role, infrastructure by technology"
           },
           {
             "type": "command",

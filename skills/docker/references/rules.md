@@ -6,8 +6,8 @@ The hooks of the plugin (`[docker:<rule>]`, one per rule) deny any write that br
 |---|---|---|
 | Three compose files in the root | `compose.yaml` (base, what is equal in dev and prod), `compose.dev.yaml` and `compose.prod.yaml` (only the difference). Use the `.yaml` extension. No `docker-compose*` and no compose file outside the root | hook `docker-folder` |
 | The rest of Docker in `docker/<domain>/` | The Dockerfile, the dockerignore, the configuration, the data and the certificates stay in the folder of the domain (`docker/backend`, `docker/nginx`, `docker/postgres`) | hook `docker-folder` |
-| Project name first | `name:` is the first key of the dev compose file and of the prod compose file. Dev uses the prefix: `name: dev-${APP_NAME:-<folder>}`. Prod uses `name: ${APP_NAME:-<folder>}`. The base has no `name:`. If the app sets `APP_NAME` in the same `.env` (Laravel does, with a display name), the project and image names become invalid. Then write a literal name: `name: dev-shop`, `name: shop` and `shop-node` | hook `compose-name` |
-| Service named after the technology | `postgres`, `redis`, `node`, `nuxt`, `react`, `nginx`. Never `app`, `db`, `api`, `web`, `backend`, `frontend`. The folder of the domain can be `backend`. Its service cannot | hook `service-name` |
+| Project name first | `name:` is the first key of the dev compose file and of the prod compose file. Dev uses the prefix: `name: dev-${APP_NAME:-<folder>}`. Prod uses `name: ${APP_NAME:-<folder>}`. The base has no `name:`. If the app sets `APP_NAME` in the same `.env` (Laravel does, with a display name), the project and image names become invalid. Then write a literal name: `name: dev-shop`, `name: shop` and `shop-backend` | hook `compose-name` |
+| Service named after its role | A service with code uses its role, the same name as its folder: `backend`, `frontend`, `api`, `worker`. A change of stack (PHP to Node) then keeps the service, the container and the hosts in the URLs. Use the technology name (`php`, `node`) only when the user asks for it. Infrastructure uses the technology: `postgres`, `redis`, `nginx`. Never `db`, `database`, `cache`, `queue`, `proxy`, because they do not say which technology runs | hook `service-name` |
 | Container = project + service | `container_name: ${COMPOSE_PROJECT_NAME}-<service>`, declared once in `compose.yaml` | hook `container-name` |
 | Single image | one `docker/<domain>/Dockerfile` per domain, with no `Dockerfile.dev` or `Dockerfile.prod`. The stages are `base`, `dev`, `build` and `prod`. The dev compose file uses `target: dev` and the prod compose file uses `target: prod` | hook `docker-folder` + production reference |
 | Every service has a Dockerfile | every service of `compose.yaml` declares `build`, even a third-party one (`postgres`, `redis`, `nginx`). The minimal Dockerfile has one `FROM`. Only prod declares `image:` | hook `service-build` |
@@ -61,8 +61,8 @@ What is equal in dev and prod goes to `compose.yaml`. Only the difference stays 
 
 ```yaml
 services:
-  node:
-    container_name: ${COMPOSE_PROJECT_NAME}-node
+  backend:
+    container_name: ${COMPOSE_PROJECT_NAME}-backend
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
