@@ -59,7 +59,7 @@ The shared knowledge lives in reference files in `skills/docker/references/`. Th
 | Three compose files in the root, the rest in `docker/<domain>/` | `docker-folder` | a compose file outside the root or outside `compose.yaml`, `compose.dev.yaml` and `compose.prod.yaml` (`.yml` and `docker-compose*` too). A Dockerfile, ignore file, nginx config, certs or data outside `docker/<domain>/`. More than one Dockerfile per domain (`Dockerfile.dev`, `Dockerfile.prod`) |
 | Every service has a Dockerfile | `service-build` | a service of `compose.yaml` without `build` for `docker/<domain>/Dockerfile`. An `image:` in dev |
 | Project name first | `compose-name` | a dev or prod compose file whose first key is not `name:`. A dev compose file without the `dev-` prefix in `name`. A `name:` in the base |
-| Service named after the technology | `service-name` | `app`, `db`, `api`, `web`, `backend`, `frontend` and other generic names. Use `node`, `nuxt`, `postgres`, `redis` |
+| Code by role, infrastructure by technology | `service-name` | `db`, `database`, `cache`, `queue`, `proxy` and other generic names of infrastructure. Use `postgres`, `redis`, `nginx`. A service with code uses its role: `backend`, `frontend`, `api` |
 | Container = project + service | `container-name` | a `container_name` that is not `${COMPOSE_PROJECT_NAME}-<service>`. In dev and prod, the rule applies only to a service that the base does not declare |
 | Dev with the host user | `dev-user` | a dev service that mounts a local folder with write access without `user: "${UID:-1000}:${GID:-1000}"` (a `:ro` mount needs no user) |
 | Volume in a local folder | `bind-volumes` | a named volume (in the service or at the top level), an anonymous volume or `type: volume` |

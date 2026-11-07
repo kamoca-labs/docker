@@ -2,6 +2,12 @@
 
 Notes reconstructed from repository history and final manifest versions. Dates identify the recorded version changes, not earlier published releases. The temporary 0.3.0/0.4.0 values in the architecture branch were explicitly corrected to 0.2.0 before merge; they are not separate releases here.
 
+## 0.4.0 (2026-11-07)
+
+### Breaking changes
+
+- A service with code is named after its role (`backend`, `frontend`, `api`), not after the technology. A change of stack keeps the service, the container (`app-backend`) and the hosts in the URLs. Use the technology name only when the user asks for it. Infrastructure keeps the technology name (`postgres`, `redis`, `nginx`). The hook `service-name` now accepts `app`, `api`, `web`, `backend` and `frontend`, and still denies `db`, `database`, `cache`, `queue` and `proxy`.
+
 ## 0.3.0 (2026-11-05)
 
 ### Breaking changes
