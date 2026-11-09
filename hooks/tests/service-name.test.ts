@@ -3,15 +3,16 @@ import { allowed, denied, sandbox, VALID } from './helpers.ts'
 
 const RULE = 'service-name'
 
-test('accepts a service with code named after its role', () => {
-  allowed(sandbox().write(RULE, 'compose.yaml', VALID.replace('  node:', '  backend:')))
+test('accepts every service named after its role', () => {
+  const roles = VALID.replace('  node:', '  backend:').replace('  postgres:', '  database:')
+  allowed(sandbox().write(RULE, 'compose.yaml', roles))
 })
 
-test('accepts a service with code named after the technology when the user asks for it', () => {
+test('accepts a service named after the technology when the user asks for it', () => {
   allowed(sandbox().write(RULE, 'compose.yaml', VALID))
 })
 
-test('denies db, cache and other generic names of infrastructure', () => {
-  const generic = VALID.replace('  postgres:', '  db:').replace('  node:', '  cache:')
-  denied(sandbox().write(RULE, 'compose.yaml', generic), /cache, db\. Use the technology name/)
+test('denies db, front and other abbreviations of a role', () => {
+  const short = VALID.replace('  postgres:', '  db:').replace('  node:', '  front:')
+  denied(sandbox().write(RULE, 'compose.yaml', short), /front, db\. Use the full role/)
 })

@@ -2,6 +2,13 @@
 
 Notes reconstructed from repository history and final manifest versions. Dates identify the recorded version changes, not earlier published releases. The temporary 0.3.0/0.4.0 values in the architecture branch were explicitly corrected to 0.2.0 before merge; they are not separate releases here.
 
+## Unreleased
+
+### Breaking changes
+
+- Every service is named after its role, infrastructure included: `database`, `cache`, `queue`, `proxy`, `mail`, `storage`. The folder follows the service (`docker/database`, `docker/proxy`). A change of stack (MySQL to Postgres, nginx to Caddy) keeps the service, the container and the hosts in the URLs. The `FROM` of the Dockerfile says which technology runs. Use the technology name only when the user asks for it. The hook `service-name` now denies only an abbreviation of a role (`db`, `front`, `back`).
+- Every comment in a file that the plugin writes is in English, whatever the language of the conversation.
+
 ## 0.4.0 (2026-11-07)
 
 ### Breaking changes

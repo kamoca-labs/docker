@@ -6,7 +6,7 @@ The watch command of each stack and polling are in the hot-reload reference.
 
 ## Host user
 
-- Set `user: "${UID:-1000}:${GID:-1000}"` on every dev service that mounts a local folder with write access, the database included. Files that the service writes (`node_modules`, `vendor`, `docker/postgres/data/dev`) then belong to your user and need no `sudo` to remove. A read-only mount (`:ro`, like the nginx certificates) needs no user.
+- Set `user: "${UID:-1000}:${GID:-1000}"` on every dev service that mounts a local folder with write access, the database included. Files that the service writes (`node_modules`, `vendor`, `docker/database/data/dev`) then belong to your user and need no `sudo` to remove. A read-only mount (`:ro`, like the nginx certificates) needs no user.
 - Always generate `UID` and `GID` in the dev `.env`. Never leave the default. Run `printf 'UID=%s\nGID=%s\n' "$(id -u)" "$(id -g)" >> .env` (if they are not there yet). A domain user has a UID far from 1000.
 - Run `mkdir -p docker/<service>/data/dev` for each volume **before** the start. If Docker creates the folder, root owns it and the service, which runs as you, cannot write.
 - Check with `ls -ln docker/<service>/data`. The owner must be equal to `id -u`.
@@ -17,7 +17,7 @@ The watch command of each stack and polling are in the hot-reload reference.
 name: dev-${APP_NAME:-shop}
 
 services:
-  node:
+  backend:
     build:
       target: dev
     working_dir: /app
@@ -31,7 +31,7 @@ services:
     volumes:
       - ./:/app
 
-  postgres:
+  database:
     build:
       target: dev
     user: "${UID:-1000}:${GID:-1000}"
@@ -40,7 +40,7 @@ services:
       POSTGRES_USER: ${DB_USER:-shop}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-shop}
     volumes:
-      - ./docker/postgres/data/dev:/var/lib/postgresql
+      - ./docker/database/data/dev:/var/lib/postgresql
 ```
 
 - The dev `.env` sets `COMPOSE_FILE=compose.yaml:compose.dev.yaml`, so `docker compose` works without flags.

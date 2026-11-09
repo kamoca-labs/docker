@@ -45,8 +45,8 @@ Dev reads `./.env` and prod reads `./.env.prod`. Dev and prod have different nam
 ## Local HTTPS
 
 ```bash
-docker/nginx/certs/generate.sh docker/nginx/certs/dev    # dev: cert.pem and key.pem for localhost
-docker/nginx/certs/generate.sh docker/nginx/certs/prod   # simulates prod. On the server, the real certificate is copied to docker/nginx/certs/prod/
+docker/proxy/certs/generate.sh docker/proxy/certs/dev    # dev: cert.pem and key.pem for localhost
+docker/proxy/certs/generate.sh docker/proxy/certs/prod   # simulates prod. On the server, the real certificate is copied to docker/proxy/certs/prod/
 ```
 
 nginx starts with HTTP/2 and HTTP/3. To check h3, curl must support it. The curl of the host usually does not, so `/docker:create` tests in a `debian:trixie-slim` container. The browser warns that the certificate is self-signed. Accept it once for `localhost`.
@@ -96,14 +96,14 @@ With the result, Claude shows the strategy and **waits for your approval**. Then
 
 ```
 [docker:compose-name] The first key of the compose file must be `name:` with a value ...
-[docker:service-name] Infrastructure service with a generic name: db. Use the technology name ...
-[docker:container-name] container_name must be the project name plus the service: postgres → ${COMPOSE_PROJECT_NAME}-postgres.
-[docker:dev-user] Dev service that mounts a local folder with write access runs without the host user: postgres. ...
+[docker:service-name] Service with an abbreviated name: db. Use the full role (backend, frontend, database, ...).
+[docker:container-name] container_name must be the project name plus the service: database → ${COMPOSE_PROJECT_NAME}-database.
+[docker:dev-user] Dev service that mounts a local folder with write access runs without the host user: database. ...
 [docker:bind-volumes] Volume that does not point to a local folder: postgres: pgdata:/var/lib/postgresql. ...
 [docker:single-env] .env.production: use one .env per environment: ./.env in dev and ./.env.prod in prod.
 [docker:var-defaults] Variable without a default: APP_PORT. Use ${APP_PORT:-value}. ...
 [docker:docker-folder] deploy/compose.yaml: the compose file belongs in the project root (compose.yaml). Put the rest of Docker in docker/<domain>/.
-[docker:service-build] Give every service in the base file a build that resolves to docker/<domain>/Dockerfile. This includes third-party services ... Services without a valid build: postgres.
+[docker:service-build] Give every service in the base file a build that resolves to docker/<domain>/Dockerfile. This includes third-party services ... Services without a valid build: database.
 [docker:http3] Server with TLS but without HTTP/2 and HTTP/3. Missing: listen 443 quic reuseport; http2 on; http3 on; ...
 [docker:dockerignore] Dockerfile has no .dockerignore. First create Dockerfile.dockerignore next to it, ...
 ```

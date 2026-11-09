@@ -16,7 +16,7 @@ Use one Dockerfile per domain, for dev and prod. The stages:
 - Install only prod dependencies in `prod`. Copy and install the lockfile before the code, to use the layer cache.
 - Use `RUN --mount=type=cache,target=<package manager cache>` for the package manager.
 
-A third-party service (`postgres`, `redis`, `nginx`) has a minimal Dockerfile with the same stages, so `target` works in both environments.
+A third-party service (`database`, `cache`, `proxy`) has a minimal Dockerfile with the same stages, so `target` works in both environments.
 
 ```dockerfile
 FROM postgres:18-alpine AS base
@@ -36,8 +36,8 @@ Only the prod difference. The `build` comes from `compose.yaml`.
 name: ${APP_NAME:-shop}
 
 services:
-  node:
-    image: ${REGISTRY:-local}/${APP_NAME:-shop}-node:${IMAGE_TAG:-latest}
+  backend:
+    image: ${REGISTRY:-local}/${APP_NAME:-shop}-backend:${IMAGE_TAG:-latest}
     build:
       target: prod
     env_file:
@@ -47,8 +47,8 @@ services:
     ports:
       - "${APP_PORT:-80}:3000"
 
-  postgres:
-    image: ${REGISTRY:-local}/${APP_NAME:-shop}-postgres:${IMAGE_TAG:-latest}
+  database:
+    image: ${REGISTRY:-local}/${APP_NAME:-shop}-database:${IMAGE_TAG:-latest}
     build:
       target: prod
     restart: unless-stopped
@@ -57,7 +57,7 @@ services:
       POSTGRES_USER: ${DB_USER:-shop}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env.prod}
     volumes:
-      - ./docker/postgres/data/prod:/var/lib/postgresql
+      - ./docker/database/data/prod:/var/lib/postgresql
 ```
 
 - Do not mount code. Mount only the data volumes and the certificates.
@@ -73,7 +73,7 @@ IMAGE_TAG=local docker compose -f compose.yaml -f compose.prod.yaml --env-file .
 ```
 
 - Use `IMAGE_TAG=local`, never `latest`. The local image then does not look like the image from the registry.
-- Use a test `.env.prod`, with fake secrets. With an HTTP server, generate the simulation certificate: `docker/nginx/certs/generate.sh docker/nginx/certs/prod`.
+- Use a test `.env.prod`, with fake secrets. With an HTTP server, generate the simulation certificate: `docker/proxy/certs/generate.sh docker/proxy/certs/prod`.
 - Never run `docker compose push` on the local machine.
 - The local build is not bit-for-bit equal to the CI build. To prove the image from the registry, use `pull` and `up -d --no-build --wait` with `IMAGE_TAG=<sha>`.
 
