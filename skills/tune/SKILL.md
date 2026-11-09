@@ -25,11 +25,12 @@ Read `../docker/references/rules.md` and bring the existing files to the rules. 
 | loose `image: postgres:16` in the compose file (service without a Dockerfile) | `docker/<service>/Dockerfile` with `FROM postgres:<version>` and `build` in `compose.yaml` |
 | `Dockerfile.dev` and `Dockerfile.prod`, or two Dockerfiles | one `docker/<domain>/Dockerfile` with the stages `base`, `dev`, `build` and `prod` (`../docker/references/production.md`) |
 | compose file with the extension `.yml` or `docker-compose*` | `compose.yaml`, `compose.dev.yaml` and `compose.prod.yaml` in the root |
-| `db`, `cache`, a service with code named after the technology, container without a name | infrastructure named after the technology (`postgres`, `redis`), a service with code named after its role (`backend`, `frontend`) unless the user asks for the technology name, and `container_name: ${COMPOSE_PROJECT_NAME}-<service>`. Also change the host in the connection URLs (`@db:` becomes `@postgres:`) |
+| `db`, `postgres`, `node`, another service named after the technology or an abbreviation, container without a name | every service named after its role (`backend`, `frontend`, `database`, `cache`, `proxy`) unless the user asks for the technology name, its folder renamed to `docker/<role>/`, and `container_name: ${COMPOSE_PROJECT_NAME}-<service>`. Also change the host in the connection URLs (`@postgres:` becomes `@database:`) and in the proxy config (`proxy_pass http://node:3000` becomes `http://backend:3000`) |
+| comment in another language than English | the same comment in English |
 | dev running as root, root files in the folder | `user: "${UID:-1000}:${GID:-1000}"`, `UID`/`GID` generated in the `.env` and `sudo chown -R "$(id -u):$(id -g)" docker/*/data` (run `sudo` with the approval of the user) |
 | Dockerfile without an ignore file, or with `.env` in the context | `Dockerfile.dockerignore` next to it, with `**/.env`, `.env.prod`, `.git`, `**/data`, `**/certs` and the dependencies of the stack |
 | `docker-compose.prod.yml` in the root, or `deploy/compose.yaml` (old layout) | `compose.prod.yaml` in the root. Move `deploy/Dockerfile`, `deploy/data`, `deploy/certs` and `deploy/nginx` to `docker/<domain>/` (`data/prod`, `certs/prod`) |
-| `.data/<service>` and `certs/` in the root | `docker/<service>/data/dev` and `docker/nginx/certs/dev` |
+| `.data/<service>` and `certs/` in the root | `docker/<service>/data/dev` and `docker/proxy/certs/dev` |
 | dev without hot reload (code copied into the image) | `../docker/references/development.md` and `../docker/references/hot-reload.md` |
 | prod image with toolchain and dev dependencies | `../docker/references/production.md` |
 | old image version (`postgres:16`, `php:8.2`) or `latest` | `../docker/references/versions.md`, including the major version change of a database with data |
@@ -91,7 +92,7 @@ The signs and the changes are in `../docker/references/production.md`.
 
 ### Architecture
 
-Change it only with a sign in the measurements. A new service follows the same rules (role name for code and technology name for infrastructure, container with the project name, `user` in dev, volume in a local folder, default, `.env` of the environment).
+Change it only with a sign in the measurements. A new service follows the same rules (role name, container with the project name, `user` in dev, volume in a local folder, default, `.env` of the environment).
 
 | Sign | Change |
 |---|---|

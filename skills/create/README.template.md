@@ -103,7 +103,7 @@ Rollback: run the same script in the checkout of the previous SHA, so the compos
 sh deploy.sh <previous-sha>
 ```
 
-The server does not receive code. In `<DEPLOY_PATH>` there are only `compose.yaml` and `compose.prod.yaml` (copied by the script, from the same SHA as the image), the `.env.prod` (outside git) and the state folders (`docker/<service>/data/prod`, `docker/nginx/certs/prod`).
+The server does not receive code. In `<DEPLOY_PATH>` there are only `compose.yaml` and `compose.prod.yaml` (copied by the script, from the same SHA as the image), the `.env.prod` (outside git) and the state folders (`docker/<service>/data/prod`, `docker/proxy/certs/prod`).
 
 ## 5. Reference
 
@@ -125,7 +125,7 @@ The server does not receive code. In `<DEPLOY_PATH>` there are only `compose.yam
 Dev:
 
 ```bash
-docker/nginx/certs/generate.sh docker/nginx/certs/dev
+docker/proxy/certs/generate.sh docker/proxy/certs/dev
 ```
 
-Prod: copy `cert.pem` (with the full chain) and `key.pem` to `docker/nginx/certs/prod/`.
+Prod: copy `cert.pem` (with the full chain) and `key.pem` to `docker/proxy/certs/prod/`.

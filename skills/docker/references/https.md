@@ -2,7 +2,7 @@
 
 The default HTTP server is the official nginx, which includes the HTTP/2 and HTTP/3 modules. It starts with TLS even in dev, because browsers do not use HTTP/2 or HTTP/3 without TLS.
 
-`docker/nginx/default.conf.template`: the image replaces the environment variables (`${HTTPS_PORT}`) and keeps the nginx variables (`$host`).
+`docker/proxy/default.conf.template`: the image replaces the environment variables (`${HTTPS_PORT}`) and keeps the nginx variables (`$host`).
 
 ```nginx
 server {
@@ -23,12 +23,12 @@ server {
     add_header Alt-Svc 'h3=":${HTTPS_PORT}"; ma=86400' always;
 
     location / {
-        proxy_pass http://node:3000;
+        proxy_pass http://backend:3000;
     }
 }
 ```
 
-The Dockerfile (`docker/nginx/Dockerfile`) puts the configuration inside the image. A new image recreates the container by itself, so nobody recreates nginx by hand.
+The Dockerfile (`docker/proxy/Dockerfile`) puts the configuration inside the image. A new image recreates the container by itself, so nobody recreates nginx by hand.
 
 ```dockerfile
 FROM nginx:1-alpine AS base
@@ -37,13 +37,13 @@ FROM base AS dev
 FROM base AS prod
 ```
 
-The service in `compose.yaml` (the context is `docker/nginx`, so the `dockerfile` is only `Dockerfile`):
+The service in `compose.yaml` (the context is `docker/proxy`, so the `dockerfile` is only `Dockerfile`):
 
 ```yaml
-  nginx:
-    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+  proxy:
+    container_name: ${COMPOSE_PROJECT_NAME}-proxy
     build:
-      context: docker/nginx
+      context: docker/proxy
       dockerfile: Dockerfile
     environment:
       HTTPS_PORT: ${HTTPS_PORT:-443}
@@ -56,18 +56,18 @@ The service in `compose.yaml` (the context is `docker/nginx`, so the `dockerfile
 Each environment compose file has only the `target` and the certificate of the environment:
 
 ```yaml
-  nginx:
+  proxy:
     build:
       target: dev
     volumes:
-      - ./docker/nginx/certs/dev:/etc/nginx/certs:ro
+      - ./docker/proxy/certs/dev:/etc/nginx/certs:ro
 ```
 
-`compose.prod.yaml` has the same, with `target: prod` and `./docker/nginx/certs/prod`.
+`compose.prod.yaml` has the same, with `target: prod` and `./docker/proxy/certs/prod`.
 
 - **`443/udp`**: HTTP/3 runs on QUIC, which uses UDP. Without this port, the browser stays on HTTP/2 and shows no error.
 - **`Alt-Svc`**: the browser finds HTTP/3 through this header. The announced port is the external one (`HTTPS_PORT`).
-- **Dev certificate**: `docker/nginx/certs/generate.sh` (in version control) generates a self-signed certificate for `localhost`:
+- **Dev certificate**: `docker/proxy/certs/generate.sh` (in version control) generates a self-signed certificate for `localhost`:
 
   ```sh
   #!/bin/sh
@@ -82,7 +82,7 @@ Each environment compose file has only the `target` and the certificate of the e
   echo "self-signed certificate in $dir (cert.pem, key.pem)"
   ```
 
-- **Prod**: `compose.prod.yaml` mounts `./docker/nginx/certs/prod:/etc/nginx/certs:ro`. On the server, copy the real certificate there (`cert.pem` with the full chain, and `key.pem`). To simulate it locally, generate the certificate in that folder with `docker/nginx/certs/generate.sh docker/nginx/certs/prod`. The certificate never enters the image: put `**/certs` in the dockerignore.
+- **Prod**: `compose.prod.yaml` mounts `./docker/proxy/certs/prod:/etc/nginx/certs:ro`. On the server, copy the real certificate there (`cert.pem` with the full chain, and `key.pem`). To simulate it locally, generate the certificate in that folder with `docker/proxy/certs/generate.sh docker/proxy/certs/prod`. The certificate never enters the image: put `**/certs` in the dockerignore.
 - **Check** (the host curl usually has no HTTP/3, so run the h3 test in a Debian container):
 
   ```bash
